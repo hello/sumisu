@@ -15,11 +15,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_LIBRARY_DIR})
 set(TARGET_APP test)
 set(TARGET_PLATFORM darwin)
 
-include_directories("${PROJECT_SOURCE_DIR}/include/*")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_SOURCE_DIR}/include/os")
+include_directories("${PROJECT_SOURCE_DIR}/include/misc")
 
-set(SOURCES ${PROJECT_SOURCE_DIR}/app/${TARGET_APP}/main.c)
-
-add_executable(test ${SOURCES})
-install(TARGETS test DESTINATION bin)
-
-
+add_subdirectory(${PROJECT_SOURCE_DIR}/platform/${TARGET_PLATFORM})
+add_subdirectory(${PROJECT_SOURCE_DIR}/app/${TARGET_APP})
