@@ -3,7 +3,9 @@
 
 project(sumisu)
 cmake_minimum_required(VERSION 2.8)
+# Ensures that we do an out of source build
 
+#begin work
 set(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/lib)
 
