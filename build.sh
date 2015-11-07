@@ -1,1 +1,2 @@
-cmake . -Bbuild
+cmake . -Bbuild &&
+    cd build && make
