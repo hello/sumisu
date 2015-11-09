@@ -43,3 +43,7 @@ install_manifest.txt
 
 # Mac files
 .DS_Store
+
+# tools files
+tools/*
+!tools/CMakeLists.txt

@@ -19,5 +19,11 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/os")
 include_directories("${PROJECT_SOURCE_DIR}/include/misc")
 
+#gcc, jlink, etc
+add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
+
+#platform implementation
 add_subdirectory(${PROJECT_SOURCE_DIR}/platform/${TARGET_PLATFORM})
+
+#app implementation
 add_subdirectory(${PROJECT_SOURCE_DIR}/app/${TARGET_APP})
