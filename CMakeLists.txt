@@ -21,6 +21,10 @@ include_directories("${PROJECT_SOURCE_DIR}/include/misc")
 
 #gcc, jlink, etc
 add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
+set(CC_ROOT ${PROJECT_SOURCE_DIR}/tools/${GCC_PACKAGE}/bin)
+set(CC_BIN arm-none-eabi-gcc)
+set(CMAKE_CC_COMPILER ${CC_ROOT}/${CC_BIN})
+
 
 #platform implementation
 add_subdirectory(${PROJECT_SOURCE_DIR}/platform/${TARGET_PLATFORM})
