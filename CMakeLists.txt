@@ -3,7 +3,7 @@
 ##############################################
 # Project 
 ##############################################
-project(sumisu)
+project(sumisu C)
 cmake_minimum_required(VERSION 2.8)
 # Ensures that we do an out of source build
 
@@ -17,18 +17,12 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_LIBRARY_DIR})
 
 set(TARGET_APP test)
-set(TARGET_PLATFORM darwin)
 
 ##############################################
 # Tools
 ##############################################
 #gcc, jlink, etc
 add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
-
-#change below to switch compiler
-set(CC_ROOT ${PROJECT_SOURCE_DIR}/tools/${GCC_PACKAGE}/bin)
-set(CC_BIN arm-none-eabi-gcc)
-set(CMAKE_CC_COMPILER ${CC_ROOT}/${CC_BIN})
 
 ##############################################
 # Includes

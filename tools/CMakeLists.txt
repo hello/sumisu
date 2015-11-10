@@ -1,9 +1,3 @@
 #change this when building cross platform
-set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3-20130916-mac)
 
-set(GCC_PACKAGE_BASENAME ${GCC_PACKAGE}.tar.bz2)
-set(GCC_URL https://launchpadlibrarian.net/151487551/${GCC_PACKAGE_BASENAME})
-set(GCC_TEMP_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${GCC_PACKAGE_BASENAME})
 
-#file(DOWNLOAD ${GCC_URL} ${GCC_TEMP_FILE} SHOWPROGRESS COMMENT "Downloading ${GCC_URL}")
-#execute_process(COMMAND tar jxf ${GCC_PACKAGE_BASENAME} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
