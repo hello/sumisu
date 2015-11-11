@@ -1,3 +1,0 @@
-[submodule "platform/nRF52_SDK"]
-	path = platform/nrf52/nRF52_SDK
-	url = git@github.com:hello/nRF52_SDK.git
