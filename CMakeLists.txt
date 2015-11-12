@@ -4,7 +4,7 @@
 # Project 
 ##############################################
 project(sumisu C)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 # Ensures that we do an out of source build
 
 ##############################################
