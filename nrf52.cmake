@@ -37,13 +37,8 @@ set(CMAKE_FIND_ROOT_PATH_INCLUDE ONLY)
 
 set(CMAKE_C_FLAGS
     "-mthumb -mcpu=cortex-m4 -mabi=aapcs"
-    )
-set(CMAKE_EXE_LINKER_FLAGS
     "--specs=nano.specs -lc -lnosys"
     )
-
-string(REGEX REPLACE ";" " " CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
 
 string(REGEX REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "")
