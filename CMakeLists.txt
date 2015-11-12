@@ -55,3 +55,13 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
 # Build
 ##############################################
 add_executable(sumisu $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:app>)
+
+##############################################
+# Post Build
+##############################################
+set(POST_BUILD_COMMAND
+    "touch ${EXECUTABLE_OUTPUT_PATH}/test.hex")
+#get_directory_property(POST_BUILD_COMMAND DIRECTORY ${PLATFORM_DIRECTORY} DEFINITION POST_BUILD_COMMAND)
+#add_custom_command(TARGET sumisu POST_BUILD COMMAND "${POST_BUILD_COMMAND}")
+add_custom_command(TARGET sumisu POST_BUILD COMMAND touch ${EXECUTABLE_OUTPUT_PATH}/test.hex)
+
