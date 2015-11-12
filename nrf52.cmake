@@ -4,7 +4,7 @@ set(TARGET_PLATFORM nrf52)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR cortex-m4)
 ##############################################
-# Location
+# Location TODO move to parent directory
 ##############################################
 
 set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3)
@@ -12,7 +12,7 @@ set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3)
 set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/${GCC_PACKAGE})
 
 ##############################################
-# Download and Setup
+# Download and Setup TODO move to tools directory
 ##############################################
 #file(DOWNLOAD ${DOWNLOAD_SOURCE} ${GCC_ROOT} SHOWPROGRESS COMMENT "Downloading ${GCC_ROOT}")
 #execute_process(COMMAND tar jxf ${GCC_ROOT} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -20,19 +20,17 @@ set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/${GCC_PACKAGE})
 ##############################################
 # TOOLCHAIN
 ##############################################
-set(CMAKE_C_COMPILER ${GCC_ROOT}/bin/arm-none-eabi-gcc)
-set(CMAKE_LINKER ${GCC_ROOT}/bin/arm-none-eabi-ld)
-
 set(CMAKE_INSTALL_PREFIX ${GCC_ROOT}/bin)
 
 message(STATUS "Using toolchain: ${CMAKE_INSTALL_PREFIX}")
 
+set(CMAKE_C_COMPILER ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-gcc)
+set(CMAKE_LINKER ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-ld)
+
+
 set(CMAKE_FIND_ROOT_PATH ${CMAKE_INSTALL_PREFIX})
-
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-
 set(CMAKE_FIND_ROOT_PATH_LIBRARY ONLY)
-
 set(CMAKE_FIND_ROOT_PATH_INCLUDE ONLY)
 
 set(CMAKE_C_FLAGS
