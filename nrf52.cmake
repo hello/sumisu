@@ -36,9 +36,13 @@ set(CMAKE_LINKER ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-ld)
 set(CMAKE_C_FLAGS
     "-mthumb -mcpu=cortex-m4 -mabi=aapcs"
     "--specs=nano.specs -lc -lnosys"
+    "-DNRF52"
+    "-DS132 -DSOFTDEVICE_PRESENT"
+    "-DBSP_DEFINES_ONLY"
+    #"-x assembler-with-cpp"
     )
-
 string(REGEX REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "")
 
-set(BUILD_SHARED_LIBS OFF)
+
+#set(BUILD_SHARED_LIBS OFF)
