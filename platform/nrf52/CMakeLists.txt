@@ -26,8 +26,13 @@ include_directories(#platform PUBLIC
     "${sdk_location}/components/drivers_nf/hal"
     )
 
+##############################################
+# Set Linker NRF52
+##############################################
 set(LINKER_FLAGS
     "-Xlinker"
     "-L ${CMAKE_CURRENT_SOURCE_DIR}/ld"
     "-Tnrf52_xxaa.ld"
+    "-Xlinker"
+    "-Map=build.map"
     )
