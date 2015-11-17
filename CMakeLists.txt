@@ -42,7 +42,7 @@ add_subdirectory(${PLATFORM_DIRECTORY})
 ##############################################
 # App Sources
 ##############################################
-add_subdirectory(${PROJECT_SOURCE_DIR}/app/${TARGET_APP})
+add_subdirectory(${PROJECT_SOURCE_DIR}/app)
 
 ##############################################
 # Generate Linker Flags From Platform
