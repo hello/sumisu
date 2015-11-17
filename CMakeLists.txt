@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # Ensures that we do an out of source build
 
 ##############################################
-# Paths and Target
+# Paths, Environment and Properperties
 ##############################################
 set(CMAKE_BINARY_DIR ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_DIR ${PROJECT_SOURCE_DIR}/lib)
@@ -18,9 +18,10 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_LIBRARY_DIR})
 set(CMAKE_LIBRARY_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 set(TARGET_APP test)
+set(BUILD_OUTPUT_NAME "${TARGET_APP}-${TARGET_PLATFORM}")
 
 ##############################################
-# Tools
+# Tools Path
 ##############################################
 #gcc, jlink, etc
 add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
@@ -31,7 +32,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/os")
 include_directories("${PROJECT_SOURCE_DIR}/include/misc")
-
 
 ##############################################
 # Platform Sources
@@ -45,7 +45,7 @@ add_subdirectory(${PLATFORM_DIRECTORY})
 add_subdirectory(${PROJECT_SOURCE_DIR}/app/${TARGET_APP})
 
 ##############################################
-# Generate Linker Flags
+# Generate Linker Flags From Platform
 ##############################################
 get_directory_property(CMAKE_EXE_LINKER_FLAGS DIRECTORY ${PLATFORM_DIRECTORY} DEFINITION LINKER_FLAGS)
 string(REGEX REPLACE ";" " " CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
@@ -55,6 +55,10 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
 # Build
 ##############################################
 add_executable(sumisu $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:app>)
+set_target_properties(sumisu
+    PROPERTIES
+    OUTPUT_NAME "${BUILD_OUTPUT_NAME}"
+    )
 
 ##############################################
 # Post Build
