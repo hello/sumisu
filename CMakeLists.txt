@@ -57,12 +57,12 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
 add_executable(sumisu $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:app>)
 set_target_properties(sumisu
     PROPERTIES
-    OUTPUT_NAME "${BUILD_OUTPUT_NAME}"
+    OUTPUT_NAME "${BUILD_OUTPUT_NAME}.elf"
     )
 
 ##############################################
 # Post Build
 ##############################################
 add_custom_command(TARGET sumisu POST_BUILD 
-    COMMAND ${OBJCOPY} -O ihex ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME} ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.hex)
+    COMMAND ${OBJCOPY} -O ihex ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.elf ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.hex)
 

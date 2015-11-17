@@ -32,6 +32,7 @@ include_directories(#platform PUBLIC
 set(LINKER_FLAGS
     "-Xlinker"
     "-L ${CMAKE_CURRENT_SOURCE_DIR}/ld"
+    "-Xlinker"
     "-Tnrf52_xxaa.ld"
     "-Xlinker"
     "-Map=build.map"
