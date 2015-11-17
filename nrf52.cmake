@@ -26,7 +26,11 @@ message(STATUS "Using toolchain: ${CMAKE_INSTALL_PREFIX}")
 
 set(CMAKE_C_COMPILER ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-gcc)
 set(OBJCOPY ${GCC_ROOT}/arm-none-eabi/bin/objcopy)
+set(READELF ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-readelf)
 
+##############################################
+# Compile Options
+##############################################
 set(CMAKE_C_FLAGS
     "-mthumb -mcpu=cortex-m4 -mabi=aapcs"
     "--specs=nano.specs -lc -lnosys"
@@ -37,6 +41,3 @@ set(CMAKE_C_FLAGS
     )
 string(REGEX REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "")
-
-
-#set(BUILD_SHARED_LIBS OFF)
