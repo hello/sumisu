@@ -33,7 +33,7 @@ set(LINKER_FLAGS
     "-Xlinker"
     "-L ${CMAKE_CURRENT_SOURCE_DIR}/ld"
     "-Xlinker"
-    "-Tnrf52_xxaa.ld"
+    "-Tnrf52_s132_app.ld"
     "-Xlinker"
-    "-Map=build.map"
+    "-Map=${BUILD_OUTPUT_NAME}.map"
     )
