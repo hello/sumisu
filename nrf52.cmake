@@ -25,6 +25,7 @@ set(CMAKE_INSTALL_PREFIX ${GCC_ROOT}/bin)
 message(STATUS "Using toolchain: ${CMAKE_INSTALL_PREFIX}")
 
 set(CMAKE_C_COMPILER ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-gcc)
+set(OBJCOPY ${GCC_ROOT}/arm-none-eabi/bin/objcopy)
 
 set(CMAKE_C_FLAGS
     "-mthumb -mcpu=cortex-m4 -mabi=aapcs"

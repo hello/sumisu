@@ -63,9 +63,6 @@ set_target_properties(sumisu
 ##############################################
 # Post Build
 ##############################################
-set(POST_BUILD_COMMAND
-    "touch ${EXECUTABLE_OUTPUT_PATH}/test.hex")
-#get_directory_property(POST_BUILD_COMMAND DIRECTORY ${PLATFORM_DIRECTORY} DEFINITION POST_BUILD_COMMAND)
-#add_custom_command(TARGET sumisu POST_BUILD COMMAND "${POST_BUILD_COMMAND}")
-add_custom_command(TARGET sumisu POST_BUILD COMMAND touch ${EXECUTABLE_OUTPUT_PATH}/test.hex)
+add_custom_command(TARGET sumisu POST_BUILD 
+    COMMAND ${OBJCOPY} -O ihex ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME} ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.hex)
 
