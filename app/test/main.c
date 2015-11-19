@@ -2,8 +2,9 @@
  *#include <stdio.h>
  */
 #include "test.h"
+#include "dtm.h"
 
 int main(int argc, char * argv[]){
-    test();
+    dtm_begin();
     return 0;
 }
