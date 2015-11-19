@@ -1,6 +1,8 @@
 #/* vim: set ft=cmake: */
 
 set(TARGET_PLATFORM nrf52)
+#todo set this to be configurable
+set(TARGET_HARDWARE BOARD_PCA10040)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR cortex-m4)
 ##############################################
@@ -37,6 +39,7 @@ set(CMAKE_C_FLAGS
     "-DNRF52"
     "-DS132 -DSOFTDEVICE_PRESENT"
     "-DBSP_DEFINES_ONLY"
+    "-D${TARGET_HARDWARE}"
     #"-x assembler-with-cpp"
     )
 string(REGEX REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
