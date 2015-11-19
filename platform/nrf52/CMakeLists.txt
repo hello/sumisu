@@ -11,7 +11,9 @@ set_property(SOURCE ${platform_src_asm} PROPERTY LANGUAGE C)
 
 file(GLOB platform_src
     "${sdk_location}/components/toolchain/system_nrf52.c"
-    "*.c"
+    #todo separate below
+    "${sdk_location}/components/ble/ble_dtm/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/misc/*.c"
     )
 
 add_library(platform OBJECT ${platform_src} ${platform_src_asm})
@@ -19,11 +21,13 @@ add_library(platform OBJECT ${platform_src} ${platform_src_asm})
 include_directories(#platform PUBLIC
     "${sdk_location}/components/toolchain/gcc"
     "${sdk_location}/components/softdevice/s132/headers"
-    "${sdk_location}/examples/bsp"
     "${sdk_location}/components/toolchain"
     "${sdk_location}/components/device"
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
-    "${sdk_location}/components/drivers_nf/hal"
+    "${sdk_location}/components/drivers_nrf/hal"
+    #todo separate below
+    "${sdk_location}/components/ble/ble_dtm"
+    "${sdk_location}/examples/bsp"
     )
 
 ##############################################
