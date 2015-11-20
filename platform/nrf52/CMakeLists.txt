@@ -12,9 +12,12 @@ set_property(SOURCE ${platform_src_asm} PROPERTY LANGUAGE C)
 file(GLOB platform_src
     "${sdk_location}/components/toolchain/system_nrf52.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+    "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/misc/*.c"
+    #uart driver
+    "${sdk_location}/components/drivers_nrf/uart/nrf_drv_uart.c"
     )
 
 add_library(platform OBJECT ${platform_src} ${platform_src_asm})
@@ -25,10 +28,22 @@ include_directories(#platform PUBLIC
     "${sdk_location}/components/toolchain"
     "${sdk_location}/components/device"
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
+    "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
+    "${sdk_location}/components/libraries/util"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
+    #board specific defines
     "${sdk_location}/examples/bsp"
+    #uart driver
+    "${sdk_location}/components/drivers_nrf/uart"
+    "${sdk_location}/components/drivers_nrf/uart"
+    )
+
+#platform specific config
+include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig/${TARGET_HARDWARE}"
     )
 
 ##############################################
