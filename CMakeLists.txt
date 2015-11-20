@@ -63,8 +63,13 @@ set_target_properties(sumisu
 ##############################################
 # Post Build
 ##############################################
-add_custom_command(TARGET sumisu POST_BUILD 
-    COMMAND ${OBJCOPY} -O ihex ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.elf ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.hex)
-add_custom_command(TARGET sumisu POST_BUILD
-    COMMAND ${READELF} -a ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.elf > ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.readelf)
+if(NOT ${OBJCOPY} STREQUAL "")
+    add_custom_command(TARGET sumisu POST_BUILD
+        COMMAND ${OBJCOPY} -O ihex ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.elf ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.hex)
+endif(NOT ${OBJCOPY} STREQUAL "")
+
+if(NOT ${READELF} STREQUAL "")
+    add_custom_command(TARGET sumisu POST_BUILD
+        COMMAND ${READELF} -a ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.elf > ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.readelf)
+endif(NOT ${READELF} STREQUAL "")
 
