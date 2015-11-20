@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
+project(platform C)
 
 file(GLOB platform_src
-    "*.h"
-    "*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
     )
 
-add_library(platform_lib ${platform_src})
-target_include_directories(platform_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
+add_library(platform OBJECT ${platform_src})
