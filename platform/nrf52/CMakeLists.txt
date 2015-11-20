@@ -11,6 +11,7 @@ set_property(SOURCE ${platform_src_asm} PROPERTY LANGUAGE C)
 
 file(GLOB platform_src
     "${sdk_location}/components/toolchain/system_nrf52.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/misc/*.c"
