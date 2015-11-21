@@ -28,8 +28,22 @@
 *.x86_64
 *.hex
 
+# Cmake
+bin/
+build/
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
 # Debug files
 *.dSYM/
 
 # Mac files
 .DS_Store
+
+# tools files
+tools/*
+!tools/CMakeLists.txt
