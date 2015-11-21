@@ -15,7 +15,7 @@ file(GLOB platform_src
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
     )
 
-include_directories(#platform PUBLIC
+include_directories(
     "${sdk_location}/components/toolchain/gcc"
     "${sdk_location}/components/softdevice/s132/headers"
     "${sdk_location}/components/toolchain"
@@ -32,7 +32,9 @@ include_directories(#platform PUBLIC
     "${sdk_location}/components/drivers_nrf/uart"
     )
 
-#platform specific config
+##############################################
+# Platform Config
+##############################################
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig"
     "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig/${TARGET_HARDWARE}"
