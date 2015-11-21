@@ -43,8 +43,13 @@ include_directories(
 ##############################################
 # Add modules (modifies platform_src)
 ##############################################
-add_subdirectory(io)
-add_subdirectory(misc)
+macro(add_to_platform folder)
+    add_subdirectory(${folder})
+    include_directories("{CMAKE_CURRENT_SOURCE_DIR}/${folder}")
+endmacro(add_to_platform)
+
+add_to_platform(io)
+add_to_platform(misc)
 
 ##############################################
 # Build Lib(Must take place after Adding modules)
