@@ -10,17 +10,10 @@ file(GLOB platform_src_asm
 set_property(SOURCE ${platform_src_asm} PROPERTY LANGUAGE C)
 
 file(GLOB platform_src
-    "${sdk_location}/components/toolchain/system_nrf52.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+    "${sdk_location}/components/toolchain/system_nrf52.c"
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
-    #todo separate below
-    "${sdk_location}/components/ble/ble_dtm/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/misc/*.c"
-    #uart driver
-    "${sdk_location}/components/drivers_nrf/uart/nrf_drv_uart.c"
     )
-
-add_library(platform OBJECT ${platform_src} ${platform_src_asm})
 
 include_directories(#platform PUBLIC
     "${sdk_location}/components/toolchain/gcc"
@@ -35,8 +28,7 @@ include_directories(#platform PUBLIC
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
     "${sdk_location}/examples/bsp"
-    #uart driver
-    "${sdk_location}/components/drivers_nrf/uart"
+    #platform
     "${sdk_location}/components/drivers_nrf/uart"
     )
 
@@ -45,6 +37,17 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig"
     "${CMAKE_CURRENT_SOURCE_DIR}/hwconfig/${TARGET_HARDWARE}"
     )
+
+##############################################
+# Add modules (modifies platform_src)
+##############################################
+add_subdirectory(io)
+add_subdirectory(misc)
+
+##############################################
+# Build Lib(Must take place after Adding modules)
+##############################################
+add_library(platform OBJECT ${platform_src} ${platform_src_asm})
 
 ##############################################
 # Set Linker NRF52
