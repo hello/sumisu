@@ -7,14 +7,18 @@
 #include "util.h"
 
 static uint8_t echo_buffer[1];
+static uint8_t output_buffer[1];
 
 void uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
     switch(p_event->type){
         case NRF_DRV_UART_EVT_TX_DONE:
+            if(!isBufferEmpty(&out)){
+                nrf_drv_uart_tx("", 0);
+            }
             break;
         case NRF_DRV_UART_EVT_RX_DONE:
             if(is_ascii(*echo_buffer)){
-                nrf_drv_uart_tx(echo_buffer, 1);
+                nrf_drv_uart_tx("", 1);
             }
             nrf_drv_uart_rx(echo_buffer, 1);
             break;
@@ -31,5 +35,8 @@ void os_uart_init(void){
 }
 
 void os_printf(const char * format, ...){
-    nrf_drv_uart_tx("Hello", 4);
+    char * itr = format;
+    while(*itr){
+        itr++;
+    }
 }
