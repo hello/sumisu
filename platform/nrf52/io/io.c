@@ -7,8 +7,6 @@
 
 static int uart_ready;
 
-#define BITRATE 19200
-
 void uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
 }
 
