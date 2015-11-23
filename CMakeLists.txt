@@ -36,8 +36,14 @@ include_directories("${PROJECT_SOURCE_DIR}/include/misc")
 ##############################################
 # Platform Sources
 ##############################################
-set(PLATFORM_DIRECTORY ${PROJECT_SOURCE_DIR}/platform/${TARGET_PLATFORM})
+set(PLATFORM_ROOT ${PROJECT_SOURCE_DIR}/platform)
+set(PLATFORM_DIRECTORY ${PLATFORM_ROOT}/${TARGET_PLATFORM})
 add_subdirectory(${PLATFORM_DIRECTORY})
+
+##############################################
+# Common Sources
+##############################################
+add_subdirectory(${PLATFORM_ROOT}/common)
 
 ##############################################
 # App Sources
@@ -54,7 +60,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" CACHE STRING "")
 ##############################################
 # Build
 ##############################################
-add_executable(sumisu $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:app>)
+add_executable(sumisu $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:platform_common> $<TARGET_OBJECTS:app>)
 set_target_properties(sumisu
     PROPERTIES
     OUTPUT_NAME "${BUILD_OUTPUT_NAME}.elf"
