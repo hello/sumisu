@@ -1,3 +1,6 @@
 [submodule "platform/nrf52/sdk"]
 	path = platform/nrf52/sdk
 	url = git@github.com:hello/nRF52_SDK.git
+[submodule "include/ringbuf"]
+	path = include/ringbuf
+	url = git@github.com:hello/c-generic-ring-buffer.git

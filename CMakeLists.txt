@@ -32,6 +32,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/tools/)
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include/os")
 include_directories("${PROJECT_SOURCE_DIR}/include/misc")
+include_directories("${PROJECT_SOURCE_DIR}/include/ringbuf")
 
 ##############################################
 # Platform Sources
