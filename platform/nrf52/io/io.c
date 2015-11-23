@@ -6,7 +6,6 @@
 #include "nrf_drv_uart.h"
 #include "util.h"
 
-static int uart_ready;
 static uint8_t echo_buffer[1];
 
 void uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
@@ -30,10 +29,7 @@ void os_uart_init(void){
     ret_code_t ret = nrf_drv_uart_init(&config, uart_event_handler);
     nrf_drv_uart_rx(echo_buffer, 1);
 }
+
 void os_printf(const char * format, ...){
-    if(!uart_ready){
-        os_uart_init();
-        uart_ready = 1;
-    }
     nrf_drv_uart_tx("Hello", 4);
 }

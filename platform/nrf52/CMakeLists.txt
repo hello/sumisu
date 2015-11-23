@@ -30,6 +30,8 @@ include_directories(
     "${sdk_location}/examples/bsp"
     #platform
     "${sdk_location}/components/drivers_nrf/uart"
+    #delay
+    "${sdk_location}/components/drivers_nrf/delay"
     )
 
 ##############################################
