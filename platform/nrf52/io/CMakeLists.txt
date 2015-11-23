@@ -1,6 +1,7 @@
 file(GLOB io_src
     "${sdk_location}/components/drivers_nrf/uart/nrf_drv_uart.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.c"
+    "${sdk_location}/components/libraries/fifo/app_fifo.c"
     )
 
 

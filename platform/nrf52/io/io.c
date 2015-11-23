@@ -5,16 +5,14 @@
 #include "bsp.h"
 #include "nrf_drv_uart.h"
 #include "util.h"
+#include "app_fifo.h"
 
 static uint8_t echo_buffer[1];
-static uint8_t output_buffer[1];
+static uint8_t output_buffer[8];
 
 void uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
     switch(p_event->type){
         case NRF_DRV_UART_EVT_TX_DONE:
-            if(!isBufferEmpty(&out)){
-                nrf_drv_uart_tx("", 0);
-            }
             break;
         case NRF_DRV_UART_EVT_RX_DONE:
             if(is_ascii(*echo_buffer)){
