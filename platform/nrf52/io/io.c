@@ -4,6 +4,7 @@
 #include "nrf.h"
 #include "bsp.h"
 #include "nrf_drv_uart.h"
+#include "util.h"
 
 static int uart_ready;
 static uint8_t echo_buffer[1];
@@ -13,7 +14,9 @@ void uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
         case NRF_DRV_UART_EVT_TX_DONE:
             break;
         case NRF_DRV_UART_EVT_RX_DONE:
-            nrf_drv_uart_tx(echo_buffer, 1);
+            if(is_ascii(*echo_buffer)){
+                nrf_drv_uart_tx(echo_buffer, 1);
+            }
             nrf_drv_uart_rx(echo_buffer, 1);
             break;
         default:
