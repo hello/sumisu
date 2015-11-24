@@ -17,6 +17,7 @@ file(GLOB platform_src
 
 include_directories(
     "${sdk_location}/components/toolchain/gcc"
+    "${sdk_location}/components/softdevice/common/softdevice_handler"
     "${sdk_location}/components/softdevice/s132/headers"
     "${sdk_location}/components/toolchain"
     "${sdk_location}/components/device"
