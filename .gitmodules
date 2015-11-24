@@ -4,3 +4,6 @@
 [submodule "include/ringbuf"]
 	path = include/ringbuf
 	url = git@github.com:hello/c-generic-ring-buffer.git
+[submodule "platform/nrf52/rtx"]
+	path = platform/nrf52/rtx
+	url = git@github.com:hello/Keil-RTX.git
