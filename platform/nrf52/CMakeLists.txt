@@ -23,6 +23,7 @@ include_directories(
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
+    "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
@@ -30,6 +31,8 @@ include_directories(
     "${sdk_location}/examples/bsp"
     #platform
     "${sdk_location}/components/drivers_nrf/uart"
+    #delay
+    "${sdk_location}/components/drivers_nrf/delay"
     )
 
 ##############################################
