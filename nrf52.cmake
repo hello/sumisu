@@ -35,6 +35,7 @@ set(READELF ${CMAKE_INSTALL_PREFIX}/arm-none-eabi-readelf)
 ##############################################
 set(CMAKE_C_FLAGS
     "-mthumb -mcpu=cortex-m4 -mabi=aapcs"
+    "-mfloat-abi=hard -mfpu=fpv4-sp-d16"
     "--specs=nano.specs -lc -lnosys"
     "-DNRF52"
     "-DS132 -DSOFTDEVICE_PRESENT"
