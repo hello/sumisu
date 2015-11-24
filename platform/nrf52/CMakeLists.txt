@@ -33,6 +33,9 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/uart"
     #delay
     "${sdk_location}/components/drivers_nrf/delay"
+    #freertos
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F"
     )
 
 ##############################################
@@ -47,12 +50,13 @@ include_directories(
 # Add modules (modifies platform_src)
 ##############################################
 macro(add_to_platform folder)
+    include_directories(${folder})
     add_subdirectory(${folder})
-    include_directories("{CMAKE_CURRENT_SOURCE_DIR}/${folder}")
 endmacro(add_to_platform)
 
 add_to_platform(io)
 add_to_platform(misc)
+add_to_platform(freertos)
 
 ##############################################
 # Build Lib(Must take place after Adding modules)
