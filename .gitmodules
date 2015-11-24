@@ -1,3 +1,6 @@
 [submodule "platform/nrf52/sdk"]
 	path = platform/nrf52/sdk
 	url = git@github.com:hello/nRF52_SDK.git
+[submodule "platform/nrf52/freertos"]
+	path = platform/nrf52/freertos
+	url = git@github.com:hello/sumisu-FreeRTOS.git
