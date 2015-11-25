@@ -6,11 +6,10 @@
 #include "io.h"
 
 int main(int argc, char * argv[]){
-    osDelay(500);
     os_uart_init();
-    os_printf("GGGGGGGGGGGGGGGGAAAAAAAAAAA\r\n");
-    osDelay(500);
-    os_printf("%s %d %x\r\n", "Hello again", 123, 0xFF);
-    while(1){}
+    os_printf("Welcome to sumisu\r\n");
+    osDelay(1000);
+    test_rtos();
+    for(;;);
     return 0;
 }

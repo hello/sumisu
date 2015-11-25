@@ -13,18 +13,23 @@ file(GLOB platform_src
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
     "${sdk_location}/components/toolchain/system_nrf52.c"
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
+    "${sdk_location}/components/softdevice/common/softdevice_handler/softdevice_handler.c"
     )
 
 include_directories(
     "${sdk_location}/components/toolchain/gcc"
+    "${sdk_location}/components/softdevice/common/softdevice_handler"
     "${sdk_location}/components/softdevice/s132/headers"
     "${sdk_location}/components/toolchain"
+    "${sdk_location}/components/toolchain/gcc"
     "${sdk_location}/components/device"
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
+    #"${sdk_location}/components/libraries/timer"
+    "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
@@ -33,6 +38,14 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/uart"
     #delay
     "${sdk_location}/components/drivers_nrf/delay"
+    #freertos
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/source/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/CMSIS/nrf52"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/GCC/nrf52"
+    #timer
+    #"${sdk_location}/components/drivers_nrf/timer"
+    #clockd
+    "${sdk_location}/components/drivers_nrf/clock"
     )
 
 ##############################################
@@ -47,12 +60,13 @@ include_directories(
 # Add modules (modifies platform_src)
 ##############################################
 macro(add_to_platform folder)
+    include_directories(${folder})
     add_subdirectory(${folder})
-    include_directories("{CMAKE_CURRENT_SOURCE_DIR}/${folder}")
 endmacro(add_to_platform)
 
 add_to_platform(io)
 add_to_platform(misc)
+add_to_platform(freertos)
 
 ##############################################
 # Build Lib(Must take place after Adding modules)

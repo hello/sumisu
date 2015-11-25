@@ -24,6 +24,8 @@ static void _uart_puts(const char * str, int len, void * data){
     for(i = 0; i < len; i++){
         app_fifo_put(&out, str[i]);
     }
+    //hack to trigger uart
+    nrf_drv_uart_tx("", 1);
 }
 static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
     switch(p_event->type){
