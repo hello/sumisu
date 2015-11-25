@@ -40,6 +40,7 @@ set(CMAKE_C_FLAGS
     "-DNRF52"
     "-DS132 -DSOFTDEVICE_PRESENT"
     "-DBSP_DEFINES_ONLY"
+    "-DBLE_STACK_SUPPORT_REQD"
     "-D${TARGET_HARDWARE}"
     #"-x assembler-with-cpp"
     )
