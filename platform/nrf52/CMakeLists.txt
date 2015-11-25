@@ -21,13 +21,14 @@ include_directories(
     "${sdk_location}/components/softdevice/common/softdevice_handler"
     "${sdk_location}/components/softdevice/s132/headers"
     "${sdk_location}/components/toolchain"
+    "${sdk_location}/components/toolchain/gcc"
     "${sdk_location}/components/device"
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
-    "${sdk_location}/components/libraries/timer"
+    #"${sdk_location}/components/libraries/timer"
     "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
@@ -38,10 +39,13 @@ include_directories(
     #delay
     "${sdk_location}/components/drivers_nrf/delay"
     #freertos
-    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/portable/GCC/nRF51_SD"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/source/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/CMSIS/nrf52"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/GCC/nrf52"
     #timer
-    "${sdk_location}/components/drivers_nrf/timer"
+    #"${sdk_location}/components/drivers_nrf/timer"
+    #clockd
+    "${sdk_location}/components/drivers_nrf/clock"
     )
 
 ##############################################
