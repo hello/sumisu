@@ -13,6 +13,7 @@ file(GLOB platform_src
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
     "${sdk_location}/components/toolchain/system_nrf52.c"
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
+    "${sdk_location}/components/softdevice/common/softdevice_handler/softdevice_handler.c"
     )
 
 include_directories(
@@ -26,6 +27,8 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
+    "${sdk_location}/components/libraries/timer"
+    "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
@@ -36,7 +39,9 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/delay"
     #freertos
     "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F"
+    "${CMAKE_CURRENT_SOURCE_DIR}/freertos/FreeRTOS/Source/portable/GCC/nRF51_SD"
+    #timer
+    "${sdk_location}/components/drivers_nrf/timer"
     )
 
 ##############################################
