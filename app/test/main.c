@@ -1,18 +1,18 @@
 #include "dtm.h"
 #include "io.h"
 #include "cmsis_os.h"
+#include "unity.h"
+
+static void test_assert_stuff(void){
+    TEST_ASSERT_EQUAL_HEX(0x1, 1);
+    TEST_ASSERT_EQUAL_HEX(0x2, 1);
+}
 
 static void test1(void const * arg){
+    UnityBegin(__FILE__);
+    RUN_TEST(test_assert_stuff);
+    os_printf("%d\r\n", UnityEnd());
     while(1){
-        os_printf("T1\r\n");
-        osDelay(1000);
-        os_printf("ET1\r\n");
-    }
-}
-static void test2(void const * arg){
-    while(1){
-        os_printf("R1\r\n");
-        osDelay(1000);
     }
 }
 int main(int argc, char * argv[]){
