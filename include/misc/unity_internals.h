@@ -284,10 +284,10 @@ typedef UNITY_DOUBLE_TYPE _UD;
 // Overriden -Jackson
 //-------------------------------------------------------
 //If defined as something else, make sure we declare it here so it's ready for use
-extern int UNITY_OUTPUT_CHAR(int);
-extern int UNITY_UNITY_PRINT_EOL(void);
-extern int UNITY_OUTPUT_START(void);
-extern int UNITY_OUTPUT_COMPLETE(void);
+int UNITY_OUTPUT_CHAR(int);
+int UNITY_UNITY_PRINT_EOL(void);
+int UNITY_OUTPUT_START(void);
+int UNITY_OUTPUT_COMPLETE(void);
 
 //-------------------------------------------------------
 // Footprint
@@ -537,17 +537,19 @@ extern const char UnityStrErr64[];
 #define TEST_ABORT() {longjmp(Unity.AbortFrame, 1);}
 
 //This tricky series of macros gives us an optional line argument to treat it as RUN_TEST(func, num=__LINE__)
-#ifndef RUN_TEST
-#ifdef __STDC_VERSION__
-#if __STDC_VERSION__ >= 199901L
-#define RUN_TEST(...) UnityDefaultTestRun(RUN_TEST_FIRST(__VA_ARGS__), RUN_TEST_SECOND(__VA_ARGS__))
-#define RUN_TEST_FIRST(...) RUN_TEST_FIRST_HELPER(##__VA_ARGS__, throwaway)
-#define RUN_TEST_FIRST_HELPER(first, ...) (first), #first
-#define RUN_TEST_SECOND(...) RUN_TEST_SECOND_HELPER(##__VA_ARGS__, __LINE__, throwaway)
-#define RUN_TEST_SECOND_HELPER(first, second, ...) (second)
-#endif
-#endif
-#endif
+/*
+ *#ifndef RUN_TEST
+ *#ifdef __STDC_VERSION__
+ *#if __STDC_VERSION__ >= 199901L
+ *#define RUN_TEST(...) UnityDefaultTestRun(RUN_TEST_FIRST(__VA_ARGS__), RUN_TEST_SECOND(__VA_ARGS__))
+ *#define RUN_TEST_FIRST(...) RUN_TEST_FIRST_HELPER(##__VA_ARGS__, throwaway)
+ *#define RUN_TEST_FIRST_HELPER(first, ...) (first), #first
+ *#define RUN_TEST_SECOND(...) RUN_TEST_SECOND_HELPER(##__VA_ARGS__, __LINE__, throwaway)
+ *#define RUN_TEST_SECOND_HELPER(first, second, ...) (second)
+ *#endif
+ *#endif
+ *#endif
+ */
 
 //If we can't do the tricky version, we'll just have to require them to always include the line number
 #ifndef RUN_TEST

@@ -11,7 +11,7 @@ static void test_assert_stuff(void){
 static void test1(void const * arg){
     UnityBegin(__FILE__);
     RUN_TEST(test_assert_stuff);
-    os_printf("%d\r\n", UnityEnd());
+    os_printf("Test Exit: %d\r\n", UnityEnd());
     while(1){
     }
 }

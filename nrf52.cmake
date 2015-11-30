@@ -5,18 +5,14 @@ set(TARGET_PLATFORM nrf52)
 set(TARGET_HARDWARE BOARD_PCA10040)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR cortex-m4)
+
+set(CMAKE_CROSSCOMPILING TRUE)
 ##############################################
 # Location TODO move to parent directory
 ##############################################
 
 set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3)
 set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/gcc-arm-none-eabi/${GCC_PACKAGE})
-
-##############################################
-# Download and Setup TODO move to tools directory
-##############################################
-#file(DOWNLOAD ${DOWNLOAD_SOURCE} ${GCC_ROOT} SHOWPROGRESS COMMENT "Downloading ${GCC_ROOT}")
-#execute_process(COMMAND tar jxf ${GCC_ROOT} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ##############################################
 # TOOLCHAIN
