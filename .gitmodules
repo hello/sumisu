@@ -4,3 +4,6 @@
 [submodule "platform/nrf52/freertos"]
 	path = platform/nrf52/freertos
 	url = git@github.com:hello/sumisu-FreeRTOS.git
+[submodule "tools/gcc-arm-none-eabi"]
+	path = tools/gcc-arm-none-eabi
+	url = git@github.com:hello/gcc-arm-none-eabi.git
