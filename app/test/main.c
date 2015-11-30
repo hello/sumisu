@@ -1,7 +1,3 @@
-/*
- *#include <stdio.h>
- */
-#include "test.h"
 #include "dtm.h"
 #include "io.h"
 #include "cmsis_os.h"
