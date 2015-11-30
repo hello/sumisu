@@ -281,19 +281,13 @@ typedef UNITY_DOUBLE_TYPE _UD;
 
 //-------------------------------------------------------
 // Output Method: os
-// Overrdide -Jackson
+// Overriden -Jackson
 //-------------------------------------------------------
 //If defined as something else, make sure we declare it here so it's ready for use
 extern int UNITY_OUTPUT_CHAR(int);
 extern int UNITY_UNITY_PRINT_EOL(void);
-
-#ifndef UNITY_OUTPUT_START
-#define UNITY_OUTPUT_START()
-#endif
-
-#ifndef UNITY_OUTPUT_COMPLETE
-#define UNITY_OUTPUT_COMPLETE()
-#endif
+extern int UNITY_OUTPUT_START(void);
+extern int UNITY_OUTPUT_COMPLETE(void);
 
 //-------------------------------------------------------
 // Footprint
