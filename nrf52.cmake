@@ -10,8 +10,7 @@ set(CMAKE_SYSTEM_PROCESSOR cortex-m4)
 ##############################################
 
 set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3)
-#set(GCC_URL https://launchpadlibrarian.net/151487551/${GCC_PACKAGE}-mac.tar.bz2)
-set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/${GCC_PACKAGE})
+set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/gcc-arm-none-eabi/${GCC_PACKAGE})
 
 ##############################################
 # Download and Setup TODO move to tools directory
