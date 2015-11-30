@@ -171,6 +171,7 @@ extern "C"
     /// Thread Definition structure contains startup information of a thread.
     /// \note CAN BE CHANGED: \b os_thread_def is implementation specific in every CMSIS-RTOS.
     typedef struct os_thread_def  {
+        const char *                name;    ///< name of the thread
         os_pthread               pthread;    ///< start address of thread function
         osPriority             tpriority;    ///< initial thread priority
         uint32_t               instances;    ///< maximum number of instances of that thread function
@@ -216,7 +217,7 @@ extern "C"
     typedef struct os_mailQ_def  {
         uint32_t                queue_sz;    ///< number of elements in the queue
         uint32_t                 item_sz;    ///< size of an item
-        void                       *pool;    ///< memory array for mail
+        struct os_mailQ_cb ** cb;
     } osMailQDef_t;
 
     /// Event structure contains detailed information about an event.
