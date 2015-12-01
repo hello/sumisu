@@ -7,11 +7,14 @@ static void test_delay(void){
     uint64_t t0 = uptime();
     osDelay(1000);
     uint64_t t1 = uptime();
-    TEST_ASSERT_INT32_WITHIN(10, 1000, (uint32_t)t1-t0);
+    TEST_ASSERT_INT32_WITHIN(5, 1000, (uint32_t)t1-t0);
 }
+
 static void test_thread(void const * arg){
     UnityBegin(__FILE__);
+
     RUN_TEST(test_delay);
+
     os_printf("Test Exit: %d\r\n", UnityEnd());
     while(1){
     }

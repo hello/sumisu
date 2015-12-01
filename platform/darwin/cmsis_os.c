@@ -36,15 +36,6 @@ osThreadId osThreadCreate (const osThreadDef_t *thread_def, void *argument){
     }
 }
 osStatus osDelay(uint32_t millisec){
-    /*
-     *int rc;
-     *struct timespec t = (struct timespec){
-     *    .tv_sec = 0,
-     *    .tv_nsec = millisec * 1000,
-     *};
-     *rc = pthread_delay_np(&t);
-     */
     usleep(millisec * 1000);
     return osOK;
-            
 }
