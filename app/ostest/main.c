@@ -6,10 +6,12 @@
 
 extern void test_delay(void);
 extern void test_thread_creation(void);
+extern void test_heap(void);
 
 static void test_thread_main(void const * arg){
     UnityBegin(__FILE__);
 
+    RUN_TEST(test_heap);
     RUN_TEST(test_delay);
     RUN_TEST(test_thread_creation);
 
