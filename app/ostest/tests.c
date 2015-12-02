@@ -6,6 +6,8 @@
 
 static volatile int gval = 0;
 static volatile int gcount = 0;
+static volatile int gtest_mutex_counter = 0;
+static osMutexId gmutex = NULL;
 
 
 static void _val_thread(void const * arg){
@@ -16,16 +18,22 @@ static void _val_thread(void const * arg){
 #include "heap.h"
 static void _heap_thrasher(void const * arg){
     int i = 0;
-    while(++i < 10){
-        size_t sz = os_rand()%128 + 1;
-        int delay = os_rand()%10 + 10;
+    while(++i < 1000){
+        size_t sz = os_rand()%256 + 1;
+        int delay = os_rand()%5 + 1;
         void * test = os_malloc(sz);
-        LOGT("A:%u\r\n",sz);
         TEST_ASSERT_NOT_NULL(test);
         osDelay(delay);
         os_free(test);
     }
     gcount++;
+    END_THREAD();
+}
+static void _mutex_waiter(void const * arg){
+    TEST_ASSERT_NOT_NULL(gmutex);
+    TEST_ASSERT(osOK == osMutexWait(gmutex, osWaitForever));
+    gtest_mutex_counter = 0;
+    TEST_ASSERT(osOK == osMutexRelease(gmutex));
     END_THREAD();
 }
 //tests
@@ -40,6 +48,36 @@ void test_thread_creation(void){
     osThreadCreate(&t2, 0);
     osDelay(10);
     TEST_ASSERT_EQUAL(1, gval);
+}
+void test_mutex(void){
+    int i;
+    osMutexDef_t def = {0};
+    osThreadDef_t t = (osThreadDef_t){
+        .name = "mutex",
+        .pthread = _mutex_waiter,
+        .tpriority = 2,
+        .instances = 1,
+        .stacksize = 512,
+    };
+    gmutex = NULL;
+    gtest_mutex_counter = 1;
+    
+    gmutex = osMutexCreate(&def);
+    TEST_ASSERT_NOT_NULL(gmutex);
+
+    //lock this thread
+    TEST_ASSERT(osOK == osMutexWait(gmutex, osWaitForever));
+    TEST_ASSERT_NOT_NULL(osThreadCreate(&t, 0));
+    osDelay(5);
+    TEST_ASSERT_EQUAL_INT(1,gtest_mutex_counter);
+    TEST_ASSERT(osOK == osMutexRelease(gmutex));
+    //unlock this thread
+    //wait for mutex waiter to change value
+    osDelay(5);
+    TEST_ASSERT(osOK == osMutexWait(gmutex, osWaitForever));
+    TEST_ASSERT_EQUAL_INT(0,gtest_mutex_counter);
+    TEST_ASSERT(osOK == osMutexRelease(gmutex));
+    TEST_ASSERT(osOK == osMutexDelete(gmutex));
 }
 
 #include "heap.h"
