@@ -8,6 +8,7 @@ extern void test_delay(void);
 extern void test_thread_creation(void);
 extern void test_heap(void);
 extern void test_mutex(void);
+extern void test_timer(void);
 
 static void test_thread_main(void const * arg){
     UnityBegin(__FILE__);
@@ -16,6 +17,7 @@ static void test_thread_main(void const * arg){
     RUN_TEST(test_delay);
     RUN_TEST(test_thread_creation);
     RUN_TEST(test_mutex);
+    RUN_TEST(test_timer);
 
     LOGT("Test Exit: %d\r\n", UnityEnd());
     osDelay(1);

@@ -4,14 +4,15 @@
 #include "sysinfo.h"
 #include "util.h"
 
-static volatile int gval = 0;
-static volatile int gcount = 0;
+static volatile int gtest_thread_creation_val = 0;
+static volatile int gtest_heap_count = 0;
 static volatile int gtest_mutex_counter = 0;
+static volatile int gtest_timer_counter = 0;
 static osMutexId gmutex = NULL;
 
 
 static void _val_thread(void const * arg){
-    gval = 1;
+    gtest_thread_creation_val = 1;
     END_THREAD();
 }
 #include "crypto.h"
@@ -19,25 +20,30 @@ static void _val_thread(void const * arg){
 static void _heap_thrasher(void const * arg){
     int i = 0;
     while(++i < 1000){
-        size_t sz = os_rand()%256 + 1;
+        size_t sz = os_rand()%1024 + 1;
         int delay = os_rand()%5 + 1;
         void * test = os_malloc(sz);
         TEST_ASSERT_NOT_NULL(test);
         osDelay(delay);
         os_free(test);
     }
-    gcount++;
+    gtest_heap_count++;
     END_THREAD();
 }
 static void _mutex_waiter(void const * arg){
     TEST_ASSERT_NOT_NULL(gmutex);
+    TEST_ASSERT(osOK != osMutexWait(gmutex, 0));
     TEST_ASSERT(osOK == osMutexWait(gmutex, osWaitForever));
     gtest_mutex_counter = 0;
     TEST_ASSERT(osOK == osMutexRelease(gmutex));
     END_THREAD();
 }
+static void _test_timer(void const * arg){
+    ++gtest_timer_counter;
+}
 //tests
 void test_thread_creation(void){
+    size_t orig_heap = os_free_heap_size();
     osThreadDef_t t2 = (osThreadDef_t){
         .name = "runner",
         .pthread = _val_thread,
@@ -47,7 +53,9 @@ void test_thread_creation(void){
     };
     osThreadCreate(&t2, 0);
     osDelay(10);
-    TEST_ASSERT_EQUAL(1, gval);
+    TEST_ASSERT_EQUAL(1, gtest_thread_creation_val);
+    osDelay(10);
+    TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
 }
 void test_mutex(void){
     int i;
@@ -82,7 +90,8 @@ void test_mutex(void){
 
 #include "heap.h"
 void test_heap(void){
-    gcount = 0;
+    gtest_heap_count = 0;
+    size_t orig_heap = os_free_heap_size();
     osThreadDef_t t = (osThreadDef_t){
         .name = "trasher0",
         .pthread = _heap_thrasher,
@@ -94,9 +103,11 @@ void test_heap(void){
     osThreadCreate(&t, 0);
     osThreadCreate(&t, 0);
     //lazy thread join
-    while(gcount < 3){
+    while(gtest_heap_count < 3){
         osDelay(10);
     }
+    size_t thrashed_heap = os_free_heap_size();
+    TEST_ASSERT_EQUAL_INT(thrashed_heap, orig_heap);
 }
 
 void test_delay(void){
@@ -104,4 +115,25 @@ void test_delay(void){
     osDelay(1000);
     uint64_t t1 = uptime();
     TEST_ASSERT_INT32_WITHIN(5, 1000, (uint32_t)t1-t0);
+}
+void test_timer(void){
+#define TEST_TIMER_WAIT_TIME 1000
+    osTimerDef_t def = (struct os_timer_def){
+        .ptimer = _test_timer,
+    };
+    size_t orig_heap = os_free_heap_size();
+    osTimerId osTimerCreate (const osTimerDef_t *timer_def, os_timer_type type, void *argument);
+    osTimerId timer = osTimerCreate(&def, osTimerPeriodic, NULL);
+    TEST_ASSERT_NOT_NULL(timer);
+    gtest_timer_counter = 0;
+    uint64_t t0 = uptime();
+    TEST_ASSERT(osOK == osTimerStart(timer,1));
+    osDelay(TEST_TIMER_WAIT_TIME);
+    TEST_ASSERT(osOK == osTimerStop(timer));
+    uint64_t t1 = uptime();
+    TEST_ASSERT_INT32_WITHIN(1, t1-t0, gtest_timer_counter);
+    TEST_ASSERT_INT32_WITHIN(1, TEST_TIMER_WAIT_TIME, gtest_timer_counter);
+    TEST_ASSERT(osOK == osTimerDelete(timer));
+    osDelay(10);
+    TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
 }
