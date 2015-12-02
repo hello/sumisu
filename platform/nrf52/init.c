@@ -12,5 +12,5 @@ osStatus osKernelInitialize (void){
 
     //setup uart
     os_uart_init();
-    os_printf("Welcome to sumisu - nrf52\r\n");
+    LOGI("Welcome to sumisu - nrf52\r\n");
 }
