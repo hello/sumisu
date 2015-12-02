@@ -23,7 +23,7 @@ uint32_t os_get_loglevel(void);
 void os_set_loglevel(uint32_t loglevel);
 
 /*
- * try no to use this
+ * platform specific
  */
 void os_putc(char c);
 
