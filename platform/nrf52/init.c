@@ -2,6 +2,7 @@
 #include "cmsis_os.h"
 #include "io.h"
 #include "nrf_delay.h"
+#include "crypto.h"
 
 osStatus osKernelInitialize (void){
     //setup clksrc for kernel ticks
@@ -9,6 +10,10 @@ osStatus osKernelInitialize (void){
 
     //debounce power
     nrf_delay_ms(500);
+
+    //seed some entropy
+    //TODO get entropy from nrf_rand lib
+    os_rand_add_entroy(1);
 
     //setup uart
     os_uart_init();

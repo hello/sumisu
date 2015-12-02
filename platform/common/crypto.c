@@ -1,6 +1,7 @@
 #include "crypto.h"
 
 static volatile uint32_t rand_state;
+
 void    os_rand_add_entroy(uint32_t e){
     rand_state ^= e;
 }
