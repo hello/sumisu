@@ -68,7 +68,7 @@ void test_mutex(void){
     //lock this thread
     TEST_ASSERT(osOK == osMutexWait(gmutex, osWaitForever));
     TEST_ASSERT_NOT_NULL(osThreadCreate(&t, 0));
-    osDelay(5);
+    osDelay(100);
     TEST_ASSERT_EQUAL_INT(1,gtest_mutex_counter);
     TEST_ASSERT(osOK == osMutexRelease(gmutex));
     //unlock this thread
