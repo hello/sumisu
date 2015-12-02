@@ -8,8 +8,11 @@ static volatile int gtest_thread_creation_val = 0;
 static volatile int gtest_heap_count = 0;
 static volatile int gtest_mutex_counter = 0;
 static volatile int gtest_timer_counter = 0;
+static volatile osMailQId gtest_mailbox;
 static osMutexId gmutex = NULL;
 
+#define TEST_MAIL_ITEM_SIZE 16
+#define TEST_MAIL_SEND_COUNT 10
 
 static void _val_thread(void const * arg){
     gtest_thread_creation_val = 1;
@@ -40,6 +43,17 @@ static void _mutex_waiter(void const * arg){
 }
 static void _test_timer(void const * arg){
     ++gtest_timer_counter;
+}
+static void _mail_sender(void const * arg){
+    int i;
+    void * a;
+    for(i = 0; i < TEST_MAIL_SEND_COUNT; i++){
+        a = osMailCAlloc (gtest_mailbox, osWaitForever);
+        TEST_ASSERT_NOT_NULL(a);
+        *(uint8_t*)a = i;
+        TEST_ASSERT(osOK == osMailPut(gtest_mailbox, a));
+    }
+    END_THREAD();
 }
 //tests
 void test_thread_creation(void){
@@ -136,4 +150,44 @@ void test_timer(void){
     TEST_ASSERT(osOK == osTimerDelete(timer));
     osDelay(10);
     TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
+}
+void test_mail(void){
+    int i;
+    void *a, *b, *c;
+    osStatus stat;
+    osMailQDef_t def = (osMailQDef_t){
+        .queue_sz = 2,    ///< number of elements in the queue
+        .item_sz = TEST_MAIL_ITEM_SIZE,    ///< size of an item
+    };
+    gtest_mailbox = osMailCreate(&def, NULL);
+    TEST_ASSERT_NOT_NULL(gtest_mailbox);
+    for(i = 0; i < 2; i++){
+        a = osMailCAlloc (gtest_mailbox, 10);
+        b = osMailCAlloc (gtest_mailbox, 10);
+        c = osMailCAlloc (gtest_mailbox, 10);
+        TEST_ASSERT_NOT_NULL(a);
+        TEST_ASSERT_NOT_NULL(b);
+        TEST_ASSERT_NULL(c);
+        stat = osMailFree(gtest_mailbox, a);
+        TEST_ASSERT_EQUAL(osOK,stat);
+        stat = osMailFree(gtest_mailbox, b);
+        TEST_ASSERT_EQUAL(osOK,stat);
+    }
+    osThreadDef_t t = (osThreadDef_t){
+        .name = "sender",
+        .pthread = _mail_sender,
+        .tpriority = 2,
+        .instances = 1,
+        .stacksize = 1024,
+    };
+    osThreadCreate(&t, 0);
+    for(i = 0; i < TEST_MAIL_SEND_COUNT; i++){
+        osEvent evt = osMailGet(gtest_mailbox, osWaitForever);
+        TEST_ASSERT(evt.status == osEventMail);
+        TEST_ASSERT_NOT_NULL(evt.value.p);
+        TEST_ASSERT_EQUAL(gtest_mailbox, evt.def.mail_id);
+        TEST_ASSERT_EQUAL_INT(*(uint8_t*)evt.value.p, i);
+        TEST_ASSERT(osOK == osMailFree(gtest_mailbox,evt.value.p));
+    }
+    osDelay(100);
 }

@@ -217,7 +217,6 @@ extern "C"
     typedef struct os_mailQ_def  {
         uint32_t                queue_sz;    ///< number of elements in the queue
         uint32_t                 item_sz;    ///< size of an item
-        struct os_mailQ_cb ** cb;
     } osMailQDef_t;
 
     /// Event structure contains detailed information about an event.
