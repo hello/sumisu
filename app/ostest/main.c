@@ -10,16 +10,20 @@ extern void test_heap(void);
 extern void test_mutex(void);
 extern void test_timer(void);
 extern void test_mail(void);
+extern void test_ps(void);
 
 static void test_thread_main(void const * arg){
     UnityBegin(__FILE__);
 
-    RUN_TEST(test_heap);
-    RUN_TEST(test_delay);
-    RUN_TEST(test_thread_creation);
-    RUN_TEST(test_mutex);
-    RUN_TEST(test_timer);
-    RUN_TEST(test_mail);
+    /*
+     *RUN_TEST(test_heap);
+     *RUN_TEST(test_delay);
+     *RUN_TEST(test_thread_creation);
+     *RUN_TEST(test_mutex);
+     *RUN_TEST(test_timer);
+     *RUN_TEST(test_mail);
+     */
+    RUN_TEST(test_ps);
 
     LOGT("Test Exit: %d\r\n", UnityEnd());
     osDelay(1000);

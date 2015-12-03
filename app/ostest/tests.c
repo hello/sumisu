@@ -191,3 +191,13 @@ void test_mail(void){
     }
     osDelay(100);
 }
+#include "pubsub.h"
+static void _on_ps_message(const ps_message_t * message){
+    LOGT("OHHAIIIIII\r\n");
+    LOGT(message->data);
+}
+void test_ps(void){
+    TEST_ASSERT_EQUAL(osOK, ps_init());
+    ps_subscribe(PS_UART0_TX, _on_ps_message);
+    TEST_ASSERT_EQUAL(osOK, ps_publish(PS_UART0, "hello", 6));
+}
