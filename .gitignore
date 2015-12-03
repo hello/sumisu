@@ -46,3 +46,6 @@ install_manifest.txt
 
 # tools files
 !tools/CMakeLists.txt
+
+#ctags
+tags
