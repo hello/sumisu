@@ -4,6 +4,8 @@
  */
 #include <sys/types.h>
 #include <pthread.h>
+#include <sched.h>
+#include <time.h>
 #include "cmsis_os.h"
 #include "io.h"
 
@@ -32,4 +34,8 @@ osThreadId osThreadCreate (const osThreadDef_t *thread_def, void *argument){
     }else{
         return (osThreadId)thread;
     }
+}
+osStatus osDelay(uint32_t millisec){
+    usleep(millisec * 1000);
+    return osOK;
 }
