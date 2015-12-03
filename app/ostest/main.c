@@ -14,13 +14,11 @@ extern void test_mail(void);
 static void test_thread_main(void const * arg){
     UnityBegin(__FILE__);
 
-    /*
-     *RUN_TEST(test_heap);
-     *RUN_TEST(test_delay);
-     *RUN_TEST(test_thread_creation);
-     *RUN_TEST(test_mutex);
-     *RUN_TEST(test_timer);
-     */
+    RUN_TEST(test_heap);
+    RUN_TEST(test_delay);
+    RUN_TEST(test_thread_creation);
+    RUN_TEST(test_mutex);
+    RUN_TEST(test_timer);
     RUN_TEST(test_mail);
 
     LOGT("Test Exit: %d\r\n", UnityEnd());
