@@ -193,105 +193,65 @@ void test_mail(void){
 }
 #include "pubsub.h"
 static const char testmsg[] = "hello\r\n";
-static volatile uint32_t thrash_count = 0;
+static volatile int ps_end;
 #define TEST_PS_COUNT 10000
-static void _on_ps_message(const void * message, size_t sz){
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, message, "message not match\r\n");
-    TEST_ASSERT_EQUAL( osOK, ps_publish(PS_UART0_RX, message, sz));
-}
-static void _on_load(const void * message, size_t sz){
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, message, "message not match\r\n");
-    thrash_count++;
-}
-static void _ps_sender(const void * arg){
+static void _test_0_sender(const void * arg){
     int i = 0;
-    osStatus rc;
-    ps_message_t * out_msg = NULL;
-
-    while( i++ < TEST_PS_COUNT ){
-        out_msg = NULL;
-        rc = ps_publish_timeout(PS_UART0_RX, testmsg, sizeof(testmsg), osWaitForever);
-        TEST_ASSERT(  osOK == rc );
-
-    }
-    END_THREAD();
-}
-static void _ps_thrasher(const void * arg){
-    int i = 0;
-    osStatus rc;
-    while( i++ < TEST_PS_COUNT ){
-        rc = ps_publish_timeout(PS_TEST_LOAD, testmsg, sizeof(testmsg), 0);
-        TEST_ASSERT(  osOK == rc || osErrorTimeoutResource );
+    while(i++ < TEST_PS_COUNT && ps_end == 0){
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
     }
     END_THREAD();
 }
 void test_ps(void){
-    ps_channel_t * rx = NULL;
-    ps_message_t * out_msg = NULL;
-    int i = 0;
-    size_t orig_heap;
-    TEST_ASSERT_EQUAL(osOK, ps_init());
-    //first test for async mode
-    TEST_ASSERT_NOT_NULL( (rx = ps_subscribe(PS_UART0_RX, NULL)) );
-    TEST_ASSERT_NULL( ps_subscribe(PS_UART0_TX, _on_ps_message) );
-    TEST_ASSERT_NULL( ps_subscribe(PS_TEST_LOAD, _on_load) );
-
-    /*
-     *orig_heap = os_free_heap_size();
-     */
-
-    TEST_ASSERT_EQUAL( osOK, ps_publish(PS_UART0_TX, testmsg, sizeof(testmsg)));
-    TEST_ASSERT_EQUAL( osOK, ps_listen(rx, &out_msg, osWaitForever) );
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, out_msg->data, "message not match\r\n");
-    TEST_ASSERT_EQUAL( osOK, ps_free_message(out_msg) );
-
-    osDelay(100);
-
-    /*
-     *TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
-     */
-    
-test_sync:
-    //now test for synchronous mode both ways
-    orig_heap = os_free_heap_size();
-    osThreadDef_t t = (osThreadDef_t){
-        .name = "sender",
-        .pthread = _ps_sender,
-        .tpriority = 2,
-        .instances = 1,
-        .stacksize = 1024,
-    };
-    osThreadCreate(&t, NULL);
-    size_t counter = 0;
-    i = 0;
-    uint64_t t0 = uptime();
-    while( i++ < TEST_PS_COUNT ){
-        TEST_ASSERT_EQUAL( osOK, ps_listen(rx, &out_msg, osWaitForever) );
-        TEST_ASSERT_EQUAL( osOK, ps_free_message(out_msg) );
+    ps_channel_t * ch = NULL;
+test_no_message:
+    {
+        uint32_t orig_heap = os_free_heap_size();
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
+        TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
     }
-    osDelay(100);//allow time for idle thread to free heap
-    TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
-    uint64_t t1 = uptime();
-    LOGT( "ps synchronous throughput %u packets/s\r\n", i * 1000 / (t1-t0) );
 
-test_async:
-    //lastly for stress testing
-    orig_heap = os_free_heap_size();
-    osThreadDef_t t2 = (osThreadDef_t){
-        .name = "thrasher",
-        .pthread = _ps_thrasher,
-        .tpriority = 2,
-        .instances = 1,
-        .stacksize = 1024,
-    };
-    osThreadCreate(&t2, NULL);
-    osThreadCreate(&t2, NULL);
-    osThreadCreate(&t2, NULL);
-    osThreadCreate(&t2, NULL);
-    osThreadCreate(&t2, NULL);
-    t0 = uptime();
-    osDelay(5000);
-    t1 = uptime();
-test_exit:
-    LOGT( "ps asynchronous throughput %u packets/s\r\n", thrash_count * 1000 /(t1-t0));
+test_single_message:
+    {
+        ch = ps_subscribe(PS_TEST_0);
+        TEST_ASSERT_NOT_NULL(ch);
+        uint32_t orig_heap = os_free_heap_size();
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
+        ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+        TEST_ASSERT_NOT_NULL(msg);
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
+        ps_free_message(msg);
+        TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
+    }
+test_throughput:
+    {
+        uint32_t orig_heap = os_free_heap_size();
+        ps_end = 0;
+        osThreadDef_t t = (osThreadDef_t){
+            .name = "runner",
+            .pthread = _test_0_sender,
+            .tpriority = 2,
+            .instances = 1,
+            .stacksize = 256,
+        };
+        osThreadCreate(&t,0);
+        osThreadCreate(&t,0);
+        osThreadCreate(&t,0);
+        uint64_t t0 = uptime();
+        int counter = 0;
+        while(++counter < (TEST_PS_COUNT));{
+            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+            TEST_ASSERT_NOT_NULL(msg);
+            TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
+            ps_free_message(msg);
+        }
+        uint64_t t1 = uptime();
+        ps_end = 1;
+        LOGT("Throughput %u packets/s\r\n", counter * 1000/((uint32_t)(t1-t0)));
+        osDelay(2000);
+        ps_flush_channel(ch);
+        osDelay(1000);
+        TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
+    }
+
 }
