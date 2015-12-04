@@ -42,12 +42,28 @@ static void _init_channel(ps_channel_t * ret){
 }
 static void _async_worker(void const * arg){
     ps_async_channel_t * ch = (ps_async_channel_t*)arg;
+    osStatus rc;
     while(1){
         ps_message_t * msg = NULL;
-        ps_listen((ps_channel_t*)arg, &msg, osWaitForever);
-        
-        LOGD("Received %u bytes\r\n", msg->sz);
-        ps_free_message(msg);
+        async_listener_t * itr = NULL;
+
+        rc = ps_listen((ps_channel_t*)arg, &msg, osWaitForever);
+
+        if( rc == osOK ){
+            if( msg ){
+                itr = ch->listeners;
+                while( itr ){
+                    itr->cb(msg->data, msg->sz);
+                    if( osOK == osMutexWait(ch->lock, osWaitForever) ){
+                        itr = itr->next;
+                        osMutexRelease(ch->lock);
+                    }
+                }
+                ps_free_message(msg);
+            }
+        }else{
+            LOGE("listen error %d", rc);
+        }
     }
 }
 static ps_channel_t * _new_async_channel(void){
@@ -59,25 +75,29 @@ static ps_channel_t * _new_async_channel(void){
             .pthread = _async_worker,
             .tpriority =  2,
             .instances = 1,
-            .stacksize = 256,
+            .stacksize = 256,//TODO find a good value
         };
+        ret->lock = osMutexCreate(&mdef);
+        if( ! ret->lock ){
+            LOGE("kaboom\r\n");
+            os_free(ret);
+            return NULL;
+        }
         ret->worker = osThreadCreate(&def, ret);
         if( !ret->worker ){
+            LOGE("kaboom2\r\n");
             //TODO destroy
             return NULL;
         }
-        ret->lock = osMutexCreate(NULL);
     }
     return ret;
 }
-osStatus _publish(ps_channel_t * ch, void * data, size_t sz){
+osStatus _publish(ps_channel_t * ch, void * data, size_t sz, uint32_t millisec){
     osStatus rc = osErrorOS;
     ps_message_t * msg = NULL;
 
-    //wait is different, async channels have receive guarantees
-    //while synchronous channel do not
     rc = osErrorTimeoutResource;
-    msg = osMailCAlloc(ch->q, 10); 
+    msg = osMailCAlloc(ch->q, millisec); 
 
     if( msg ){
         msg->data = os_malloc(sz);
@@ -94,32 +114,34 @@ osStatus _publish(ps_channel_t * ch, void * data, size_t sz){
 
     return rc;
 }
+osStatus ps_publish_timeout(ps_channel_type channel, void * data, size_t sz, uint32_t millisec){
+    osStatus rc;
+    rc = osMutexWait(_channel_lock, osWaitForever);
+    if(rc != osOK){
+        LOGE("Channel Timeout\r\n");
+        return rc;
+    }
+    ps_channel_t * head = _channels[channel];
+    osMutexRelease(_channel_lock);
+
+    ps_channel_t * itr = head;
+
+    while( itr ){
+        rc = _publish(itr, data, sz, millisec);
+        if( rc != osOK ){
+            break;
+        }
+        osMutexWait(((ps_async_channel_t*)head)->lock, osWaitForever);
+        itr = itr->next;
+        osMutexRelease(((ps_async_channel_t*)head)->lock);
+    }
+    return rc;
+}
 /*
  * sends a message to the channel
  */
 osStatus ps_publish(ps_channel_type channel, void * data, size_t sz){
-    osStatus rc;
-    rc = osMutexWait(_channel_lock, 1000);
-    if( rc == osOK){
-        ps_channel_t * head = _channels[channel];
-        osMutexRelease(_channel_lock);
-
-        ps_channel_t * itr = head;
-
-        while( itr ){
-            rc = _publish(itr, data, sz);
-            if( rc != osOK ){
-                break;
-            }
-            osMutexWait(((ps_async_channel_t*)head)->lock, osWaitForever);
-            itr = itr->next;
-            osMutexRelease(((ps_async_channel_t*)head)->lock);
-        }
-    }else{
-        LOGE("FATAL: Channel Timeout\r\n");
-        rc = osErrorTimeoutResource;
-    }
-    return rc;
+    return ps_publish_timeout(channel, data, sz, 1);
 }
 static osStatus _append_channel(ps_async_channel_t * head, ps_channel_t * node){
     ps_channel_t * itr = (ps_channel_t*)head;
@@ -164,25 +186,23 @@ static ps_channel_t *_new_channel(void){
 ps_channel_t * ps_subscribe(ps_channel_type channel, async_on_message opt_cb){
     osStatus rc;
     ps_channel_t * ret = NULL;
-    rc = osMutexWait(_channel_lock, 1000);
-    if( rc == osOK ){
-        ps_channel_t * head = _channels[channel];
-        if ( !head ){
-            //the first node is the async channel
-            head = _new_async_channel();
-            _channels[channel] = head;
-        }
-        osMutexRelease(_channel_lock);
-
-        osMutexWait(((ps_async_channel_t*)head)->lock, osWaitForever);
-        if( !opt_cb ){
-            ret = _new_channel();
-            _append_channel(head, ret);
-        }else{
-             _append_listener((ps_async_channel_t*)head, opt_cb);
-        }
-        osMutexRelease(((ps_async_channel_t*)head)->lock);
+    osMutexWait(_channel_lock, osWaitForever);
+    ps_channel_t * head = _channels[channel];
+    if ( !head ){
+        //the first node is the async channel
+        head = _new_async_channel();
+        _channels[channel] = head;
     }
+    osMutexRelease(_channel_lock);
+
+    osMutexWait(((ps_async_channel_t*)head)->lock, osWaitForever);
+    if( !opt_cb ){
+        ret = _new_channel();
+        _append_channel(head, ret);
+    }else{
+        _append_listener((ps_async_channel_t*)head, opt_cb);
+    }
+    osMutexRelease(((ps_async_channel_t*)head)->lock);
 
     return ret;
 }

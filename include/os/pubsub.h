@@ -14,7 +14,7 @@ typedef struct{
     const void * data;
     size_t sz;
 }ps_message_t;
-typedef void(*async_on_message)(const ps_message_t * message);
+typedef void(*async_on_message)(const void * data, size_t sz);
 typedef struct ps_channel_t  ps_channel_t;
 
 osStatus ps_init(void);
@@ -22,6 +22,10 @@ osStatus ps_init(void);
  * sends a message to the channel
  */
 osStatus ps_publish(ps_channel_type channel, void * data, size_t sz);
+/*
+ * sends a message to the channel with specific timeout
+ */
+osStatus ps_publish_timeout(ps_channel_type channel, void * data, size_t sz, uint32_t millisec);
 /*
  * if opt_cb is supplied, it'll be called asynchronously on a publish event
  * if NULL is passed as opt_cb, then it'll run in receiver mode where the subscriber 

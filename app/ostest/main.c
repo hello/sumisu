@@ -2,6 +2,7 @@
 #include "unity.h"
 #include "io.h"
 #include "sysinfo.h"
+#include "util.h"
 
 
 extern void test_delay(void);
@@ -26,8 +27,10 @@ static void test_thread_main(void const * arg){
     RUN_TEST(test_ps);
 
     LOGT("Test Exit: %d\r\n", UnityEnd());
-    osDelay(1000);
-    osThreadTerminate(osThreadGetId());
+    while(1){
+        osDelay(1000);
+    }
+    END_THREAD();
 }
 
 int main(int argc, char * argv[]){
