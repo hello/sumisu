@@ -251,7 +251,6 @@ void test_ps(void){
      *TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
      */
     
-    goto test_async;
 test_sync:
     //now test for synchronous mode both ways
     orig_heap = os_free_heap_size();
@@ -294,5 +293,5 @@ test_async:
     osDelay(5000);
     t1 = uptime();
 test_exit:
-    LOGT( "ps asynchronous throughput %u packets/s\r\n", thrash_count  );
+    LOGT( "ps asynchronous throughput %u packets/s\r\n", thrash_count * 1000 /(t1-t0));
 }
