@@ -13,6 +13,7 @@ static void _cli_daemon(const void * arg){
     cli_context_t * ctx = (cli_context_t *)arg;
     ps_channel_t * ch = ps_subscribe(ctx->topic);
     while(ch){
+        LOGI(">");
         ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
         if ( msg ){
             LOGI("Received Command %s\r\n", msg->data);
