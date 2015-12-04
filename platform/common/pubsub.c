@@ -2,6 +2,10 @@
 #include "util.h"
 #include "io.h"
 
+/**
+ * this directly affects the throughput of the pubsub system
+ */
+#define DEFAULT_PS_QUEUE_DEPTH 10
 
 typedef struct _async_listener{
     async_on_message cb;
@@ -34,7 +38,7 @@ osStatus ps_init(void){
 }
 static void _init_channel(ps_channel_t * ret){
     osMailQDef_t def = (osMailQDef_t){
-        .queue_sz = 3,
+        .queue_sz = DEFAULT_PS_QUEUE_DEPTH,
         .item_sz = sizeof(ps_message_t),
     };
     ret->q = osMailCreate(&def, NULL);
