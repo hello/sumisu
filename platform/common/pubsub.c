@@ -48,7 +48,7 @@ static ps_channel_t * _channel_list_append(ps_topic_t topic, ps_channel_t * ch){
     osStatus rc;
     ps_channel_t * ret = NULL;
     rc = osMutexWait(_channel_lock, osWaitForever);
-    if( rc == osOK ){
+    if( rc == osOK || rc == osErrorISR){//exception is we are in isr
         ret = _channels[topic];
         if( ch ){
             _channels[topic] = _append(ret, ch);
