@@ -210,10 +210,9 @@ test_no_message:
         TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
         TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
     }
-
+    ch = ps_subscribe(PS_TEST_0);
 test_single_message:
     {
-        ch = ps_subscribe(PS_TEST_0);
         TEST_ASSERT_NOT_NULL(ch);
         uint32_t orig_heap = os_free_heap_size();
         TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
