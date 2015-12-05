@@ -37,7 +37,7 @@ int main(int argc, char * argv[]){
         .pthread = test_thread_main,
         .tpriority = 0,
         .instances = 1,
-        .stacksize = 1024,
+        .stacksize = 2048,
     };
     osKernelInitialize();
     osThreadCreate(&t1, 0);
