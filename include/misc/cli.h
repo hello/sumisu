@@ -9,8 +9,7 @@ typedef struct{
 }cli_command_node_t;
 
 /**
- * starts cli daemon on a certain topic
- * forks a thread for each topic
+ * starts cli daemon on a certain topic and a runs table of commands provided(2d array terminated with an empty element)
  */
 osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_command_node_t * head);
 

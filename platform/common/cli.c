@@ -104,9 +104,8 @@ osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_comm
         ctx->topic = topic;
         ctx->fork_stack_size = stack_size;
         ctx->tbl = head;
-        osThreadCreate(&t, ctx);
+        return osThreadCreate(&t, ctx);
     }else{
         return osErrorNoMemory;
     }
-
 }
