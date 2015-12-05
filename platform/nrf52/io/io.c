@@ -7,11 +7,15 @@
 #include "util.h"
 #include "app_fifo.h"
 #include "nrf_drv_config.h"
+#include "pubsub.h"
 
+#define COMMAND_BUFFER_SIZE 64
 static const char * const g_pcHex = "0123456789ABCDEF";
 
 static uint8_t echo_buffer[1];
 static uint8_t output_buffer[1];
+static uint8_t command_buffer[COMMAND_BUFFER_SIZE+1];
+static uint32_t command_buffer_idx;
 static app_fifo_t out;
 
 static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context);
@@ -29,6 +33,20 @@ static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context
             }
             break;
         case NRF_DRV_UART_EVT_RX_DONE:
+            if( *echo_buffer == '\r' || *echo_buffer == '\n' ) {
+                nrf_drv_uart_tx("\r\n",2);
+                if( command_buffer_idx != 0){
+                    command_buffer[command_buffer_idx] = 0;
+                    ps_publish(PS_UART0_RX, command_buffer, command_buffer_idx);
+                }
+                command_buffer_idx = 0;
+            }else{
+                command_buffer[command_buffer_idx++] = *echo_buffer;
+                if(command_buffer_idx >= COMMAND_BUFFER_SIZE){
+                    command_buffer_idx = 0;
+                }
+            }
+
             if(is_ascii(*echo_buffer)){
                 nrf_drv_uart_tx(echo_buffer, 1);
             }
