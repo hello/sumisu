@@ -1,6 +1,7 @@
 #include "pubsub.h"
 #include "util.h"
 #include "io.h"
+#include <string.h>
 
 /**
  * this directly affects the throughput of the pubsub system
@@ -66,7 +67,7 @@ static ps_channel_t * _new_channel(size_t depth){
         .queue_sz = depth,
         .item_sz = sizeof(ps_message_t),
     };
-    ps_channel_t * ret = os_malloc(sizeof(*ret));
+    ps_channel_t * ret = (ps_channel_t*)os_malloc(sizeof(*ret));
     if(ret){
         ret->q = osMailCreate(&def, NULL);
         if( !ret->q ){
@@ -86,7 +87,7 @@ osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
     while ( itr ){
         ps_message_t * msg = osMailAlloc(itr->q, 0);
         if ( msg ){
-            msg->data = os_malloc(sz);
+            msg->data = (void*)os_malloc(sz);
             if ( ! msg->data ){
                 osMailFree(itr->q, msg);
                 return osErrorNoMemory;

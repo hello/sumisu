@@ -57,7 +57,7 @@ _tokenize(char * string, char **argv){
  * end
  **/
 static osStatus _handle_command(char * string, size_t string_size, const cli_command_node_t * head, int * ret_code){
-    cli_command_node_t * itr = head;
+    const cli_command_node_t * itr = head;
     char * argv[CLI_MAX_ARGS] = {0};
     int argc = _tokenize(string,argv);
     while(itr->command){
