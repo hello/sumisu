@@ -191,3 +191,66 @@ void test_mail(void){
     }
     osDelay(100);
 }
+#include "pubsub.h"
+static const char testmsg[] = "hello\r\n";
+static volatile int ps_end;
+#define TEST_PS_COUNT 10000
+static void _test_0_sender(const void * arg){
+    int i = 0;
+    while(i++ < TEST_PS_COUNT && ps_end == 0){
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
+    }
+    END_THREAD();
+}
+void test_ps(void){
+    ps_channel_t * ch = NULL;
+test_no_message:
+    {
+        uint32_t orig_heap = os_free_heap_size();
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
+        TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
+    }
+    ch = ps_subscribe(PS_TEST_0);
+test_single_message:
+    {
+        TEST_ASSERT_NOT_NULL(ch);
+        uint32_t orig_heap = os_free_heap_size();
+        TEST_ASSERT_EQUAL(osOK, ps_publish(PS_TEST_0, testmsg, sizeof(testmsg)));
+        ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+        TEST_ASSERT_NOT_NULL(msg);
+        TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
+        ps_free_message(msg);
+        TEST_ASSERT_EQUAL_INT(os_free_heap_size(), orig_heap);
+    }
+test_throughput:
+    {
+        uint32_t orig_heap = os_free_heap_size();
+        ps_end = 0;
+        osThreadDef_t t = (osThreadDef_t){
+            .name = "runner",
+            .pthread = _test_0_sender,
+            .tpriority = 2,
+            .instances = 1,
+            .stacksize = 256,
+        };
+        osThreadCreate(&t,0);
+        osThreadCreate(&t,0);
+        osThreadCreate(&t,0);
+        uint64_t t0 = uptime();
+        int counter = 0;
+        while(++counter < (TEST_PS_COUNT));{
+            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+            TEST_ASSERT_NOT_NULL(msg);
+            TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
+            ps_free_message(msg);
+        }
+        uint64_t t1 = uptime();
+        ps_end = 1;
+        LOGT("Throughput %u packets/s\r\n", counter * 1000/((uint32_t)(t1-t0)));
+        osDelay(2000);
+        ps_flush_channel(ch);
+        osDelay(1000);
+        TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
+    }
+
+}
