@@ -1,7 +1,7 @@
 #ifndef PUBSUB_H
 #define PUBSUB_H
 
-#include "pubsub_channels.h"
+#include "pubsub_topics.h"
 #include "stddef.h"
 #include "cmsis_os.h"
 /**

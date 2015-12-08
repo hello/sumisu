@@ -1,5 +1,5 @@
-#ifndef PUBSUB_CHANNELS_H
-#define PUBSUB_CHANNELS_H
+#ifndef PUBSUB_TOPICS_H
+#define PUBSUB_TOPICS_H
 
 typedef enum{
     PS_SYSTEM,              //indicates system events
