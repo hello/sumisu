@@ -51,7 +51,7 @@ int main(int argc, char * argv[]){
     osKernelInitialize();
 
     my_services[0] = os_ble_uart_service(0, PS_UART0_RX);
-    os_ble_daemon_start(PS_BLE_EVENTS,PS_BLE_CONTROL, my_services);
+    os_ble_daemon_start(PS_BLE_EVENTS,PS_BLE_CONTROL, (const os_ble_service_t **)my_services);
 
     os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
 

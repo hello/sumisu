@@ -9,7 +9,7 @@ typedef struct os_ble_service_t os_ble_service_t;
  * @control: the topic in which the daemon will listen from the app
  */
 
-osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control, const os_ble_service_t ** services);
+osStatus os_ble_daemon_start(ps_topic_t listen, ps_topic_t broadcast, const os_ble_service_t ** services);
 
 /**
  * UART service

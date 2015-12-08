@@ -278,7 +278,7 @@ static void _init_ble( const os_ble_service_t * services[]){
     }
 }
 
-osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control, const os_ble_service_t ** services){
+osStatus os_ble_daemon_start(ps_topic_t listen, ps_topic_t broadcast, const os_ble_service_t ** services){
     osThreadDef_t t = (osThreadDef_t){
         .name = "bled",
         .pthread = _ble_daemon,
@@ -289,8 +289,8 @@ osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control, const os_ble
     if( !self.ready ){
         _init_ble(services);
     }
-    self.tin = control;
-    self.tout = status;
+    self.tin = listen;
+    self.tout = broadcast;
     self.ready = true;
     self.services = services;
     if( osThreadCreate(&t, NULL) ){
