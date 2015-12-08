@@ -1,5 +1,5 @@
-#ifndef CLI_H
-#define CLI_H
+#ifndef OS_CLI_H
+#define OS_CLI_H
 #include "pubsub.h"
 
 typedef int (*cli_command_cb)(int argc, char * argv[]);

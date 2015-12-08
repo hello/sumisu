@@ -28,7 +28,6 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
-    #"${sdk_location}/components/libraries/timer"
     "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
@@ -42,10 +41,15 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/freertos/source/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/CMSIS/nrf52"
     "${CMAKE_CURRENT_SOURCE_DIR}/freertos/portable/GCC/nrf52"
-    #timer
-    #"${sdk_location}/components/drivers_nrf/timer"
     #clockd
     "${sdk_location}/components/drivers_nrf/clock"
+    #ble
+    "${sdk_location}/components/ble/common"
+    "${sdk_location}/components/ble/ble_advertising"
+    #app trace
+    "${sdk_location}/components/libraries/trace"
+    #pstorage
+    "${sdk_location}/components/drivers_nrf/pstorage"
     )
 
 ##############################################
@@ -66,6 +70,7 @@ endmacro(add_to_platform)
 
 add_to_platform(io)
 add_to_platform(misc)
+add_to_platform(ble)
 add_to_platform(freertos)
 
 ##############################################

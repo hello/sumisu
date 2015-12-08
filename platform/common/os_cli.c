@@ -1,4 +1,4 @@
-#include "cli.h"
+#include "os_cli.h"
 #include "cmsis_os.h"
 #include "io.h"
 #include "util.h"
@@ -93,7 +93,7 @@ static void _cli_daemon(const void * arg){
 
 osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_command_node_t * head){
     osThreadDef_t t = (osThreadDef_t){
-        .name = "cli",
+        .name = "clid",
         .pthread = _cli_daemon,
         .tpriority = 2,
         .instances = 1,
@@ -104,8 +104,9 @@ osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_comm
         ctx->topic = topic;
         ctx->fork_stack_size = stack_size;
         ctx->tbl = head;
-        return osThreadCreate(&t, ctx);
-    }else{
-        return osErrorNoMemory;
+        if(osThreadCreate(&t, ctx)){
+            return osOK;
+        }
     }
+    return osErrorNoMemory;
 }
