@@ -6,6 +6,7 @@ typedef enum{
     PS_SYSTEM,              //indicates system events
     PS_TEST_0,              //for testing
     PS_UART0_RX,            //uart input
+    PS_UART0_TX,            //uart output
     PS_BLE_EVENTS,          //BLE events
     PS_BLE_CONTROL,         //Control BLE events
     PS_BLE_CLI_RX,          //BLE CLI Service input

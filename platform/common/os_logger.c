@@ -1,12 +1,14 @@
 #include "io.h"
 #include "cmsis_os.h"
-
+#include "pubsub.h"
 static const char * const g_pcHex = "0123456789ABCDEF";
 static volatile uint32_t viewtag = LOG_LEVEL_ALL;
 
 typedef void (*out_func_t)(const char * str, int len, void * data);
 static void _va_printf( va_list vaArgP, const char * pcString, out_func_t func, void * data );
+//out_funcs
 static void _os_puts(const char * str, int len, void * data);
+static void _ps_puts(const char * str, int len, void * data);
 
 
 
@@ -17,6 +19,11 @@ void os_log(uint32_t loglevel, const char * format, ...){
     if( loglevel & viewtag ){
         //todo protect print
         _va_printf(args, format, _os_puts, NULL);
+    }
+    if( loglevel & LOG_LEVEL_INFO){
+        //TODO make this not hardcoded
+        ps_topic_t temp = PS_UART0_TX;
+        _va_printf(args, format, _ps_puts, &temp);
     }
 
     va_end(args);
@@ -30,6 +37,10 @@ void os_set_loglevel(uint32_t loglevel){
     viewtag = loglevel;
 }
 
+static void _ps_puts(const char * str, int len, void * data){
+    ps_topic_t * temp = (ps_topic_t *)data;
+    ps_publish(*temp, str, len);
+}
 static void _os_puts(const char * str, int len, void * data){
     int i;
     for(i = 0; i < len; i ++){
