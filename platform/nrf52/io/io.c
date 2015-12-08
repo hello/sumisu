@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "io.h"
 #include "nrf.h"
 #include "bsp.h"
@@ -47,7 +48,7 @@ static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context
                     nrf_drv_uart_tx("\r\n",2);
                     if( command_buffer_idx != 0){
                         command_buffer[command_buffer_idx] = 0;
-                        ps_publish(out_topic, command_buffer, command_buffer_idx);
+                        ps_publish(out_topic, command_buffer, command_buffer_idx+1);
                         memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
                     }
                     command_buffer_idx = 0;

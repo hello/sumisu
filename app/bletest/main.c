@@ -7,7 +7,11 @@
 
 static int _command_echo(int argc, char * argv[]){
     if(argc > 1){
-        LOGI("%s\r\n", argv[1]);
+        int i;
+        for(i = 1; i < argc; i++){
+            LOGI("%s ", argv[i]);
+        }
+        LOGI("\r\n");
     }
     return 0;
 }
