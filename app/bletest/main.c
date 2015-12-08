@@ -3,6 +3,7 @@
 #include "sysinfo.h"
 #include "os_cli.h"
 #include "util.h"
+#include "os_ble.h"
 
 static int _command_echo(int argc, char * argv[]){
     if(argc > 1){
@@ -45,11 +46,15 @@ static void _ble_watcher(const void * arg){
     }
     END_THREAD();
 }
+static os_ble_service_t * my_services[2];
 
 int main(int argc, char * argv[]){
     osKernelInitialize();
     os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
-    os_ble_daemon_start(PS_BLE_EVENTS,PS_BLE_CONTROL);
+
+    my_services[0] = os_ble_uart_service(0, 0);
+    os_ble_daemon_start(PS_BLE_EVENTS,PS_BLE_CONTROL, my_services);
+
     osThreadDef_t t = (osThreadDef_t){
         .name = "watcher",
         .pthread = _ble_watcher,

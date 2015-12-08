@@ -10,14 +10,14 @@
 #include "ble_conn_params.h"
 #include "softdevice_handler.h"
 #include "ble_config.h"
+#include "os_ble_internals.h"
 
-typedef struct{
+struct{
     ps_topic_t tout;
     ps_topic_t tin;
     volatile bool ready;
-}os_ble_contex_t;
-
-static os_ble_contex_t  _ble_ctx;
+    const os_ble_service_t ** services;
+}self;
 
 
 /**
@@ -29,10 +29,10 @@ static void _on_adv_evt(ble_adv_evt_t ble_adv_evt){
     switch (ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
-            ps_publish(_ble_ctx.tout, "advertising", sizeof("advertising"));
+            ps_publish(self.tout, "advertising", sizeof("advertising"));
             break;
         case BLE_ADV_EVT_IDLE:
-            ps_publish(_ble_ctx.tout, "idle", sizeof("idle"));
+            ps_publish(self.tout, "idle", sizeof("idle"));
             break;
         default:
             break;
@@ -48,14 +48,14 @@ static void _on_ble_evt(ble_evt_t * p_ble_evt){
             /*
              *m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
              */
-            ps_publish(_ble_ctx.tout, "connected", sizeof("connected"));
+            ps_publish(self.tout, "connected", sizeof("connected"));
             break;
             
         case BLE_GAP_EVT_DISCONNECTED:
             /*
              *m_conn_handle = BLE_CONN_HANDLE_INVALID;
              */
-            ps_publish(_ble_ctx.tout, "disconnected", sizeof("disconnected"));
+            ps_publish(self.tout, "disconnected", sizeof("disconnected"));
             break;
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -63,6 +63,7 @@ static void _on_ble_evt(ble_evt_t * p_ble_evt){
              *err_code = sd_ble_gap_sec_params_reply(m_conn_handle, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP, NULL, NULL);
              *APP_ERROR_CHECK(err_code);
              */
+            ps_publish(self.tout, "securereq", sizeof("seqreq"));
             break;
 
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
@@ -115,13 +116,23 @@ static void _ble_evt_dispatch(ble_evt_t * p_ble_evt){
     _on_ble_evt(p_ble_evt);
     //advertising, will dispatch events via on_adv_evt callback
     ble_advertising_on_ble_evt(p_ble_evt);
+
+    if( self.services ){
+        const os_ble_service_t ** itr = self.services;
+        while(*itr){
+            if((*itr)->event){
+                (*itr)->event(p_ble_evt);
+            }
+            itr++;
+        }
+    }
 }
 
 /**
  * BLE_CONTROLLER DAEMON
  */
 static void _ble_daemon(const void * arg){
-    ps_channel_t * ch = ps_subscribe(_ble_ctx.tin);
+    ps_channel_t * ch = ps_subscribe(self.tin);
     while(1){
         ps_message_t * msg = NULL;
         osStatus rc = osOK;
@@ -250,14 +261,23 @@ static void _ble_sd_init( void ){
 /*
  * dispatch to initialize all ble stack
  */
-static void _init_ble( void ){
+static void _init_ble( const os_ble_service_t * services[]){
     _ble_sd_init();
     _gap_params_init();
     _advertising_init();
     _conn_params_init();
+    if( services ){
+        const os_ble_service_t ** itr = services;
+        while(*itr){
+            if((*itr)->init){
+                (*itr)->init();
+            }
+            itr++;
+        }
+    }
 }
 
-osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control){
+osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control, const os_ble_service_t ** services){
     osThreadDef_t t = (osThreadDef_t){
         .name = "bled",
         .pthread = _ble_daemon,
@@ -265,12 +285,13 @@ osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control){
         .instances = 1,
         .stacksize = 256,
     };
-    if( !_ble_ctx.ready ){
-        _init_ble();
+    if( !self.ready ){
+        _init_ble(services);
     }
-    _ble_ctx.tin = control;
-    _ble_ctx.tout = status;
-    _ble_ctx.ready = true;
+    self.tin = control;
+    self.tout = status;
+    self.ready = true;
+    self.services = services;
     if( osThreadCreate(&t, NULL) ){
         return osOK;
     }else{
