@@ -75,7 +75,7 @@ static void _cli_daemon(const void * arg){
     ps_channel_t * ch = ps_subscribe(ctx->topic);
     LOGI("Connecting CLI to channel %u\r\n", ctx->topic);
     while(ch){
-        LOGI("%u>",ctx->topic);
+        LOGD("%u>",ctx->topic);
         ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
         if ( msg ){
             int code = 0;
