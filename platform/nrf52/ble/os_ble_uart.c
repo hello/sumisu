@@ -74,7 +74,6 @@ static void _init(void){
 }
 
 static void _event(ble_evt_t * p_ble_evt){
-    LOGD("UART event\r\n");
     ble_nus_on_ble_evt(&self.m_nus, p_ble_evt);
 }
 
