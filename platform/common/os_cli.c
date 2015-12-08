@@ -1,4 +1,5 @@
 #include "os_cli.h"
+#include "heap.h"
 #include "cmsis_os.h"
 #include "io.h"
 #include "util.h"
@@ -61,7 +62,7 @@ static osStatus _handle_command(char * string, size_t string_size, const cli_com
     char * argv[CLI_MAX_ARGS] = {0};
     int argc = _tokenize(string,argv);
     while(itr->command){
-        if( strcmp(itr->command, argv[0]) == 0 && itr->cb ){
+        if( strncmp(itr->command, argv[0], strlen(itr->command)) == 0 && itr->cb ){
             *ret_code = itr->cb(argc, argv);
             return osOK;
         }

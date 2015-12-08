@@ -133,7 +133,7 @@ static void _ble_evt_dispatch(ble_evt_t * p_ble_evt){
  */
 static void _ble_daemon(const void * arg){
     ps_channel_t * ch = ps_subscribe(self.tin);
-    while(1){
+    while(ch){
         ps_message_t * msg = NULL;
         osStatus rc = osOK;
         uint32_t err_code = 0;
@@ -152,6 +152,7 @@ static void _ble_daemon(const void * arg){
             LOGE("BLEd receive error %x\r\n", rc);
         }
     }
+    LOGE("BLEd Failed\r\n");
     END_THREAD();
 }
 

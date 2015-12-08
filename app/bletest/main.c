@@ -21,7 +21,6 @@ static int _command_free(int argc, char * argv[]){
     LOGI("Free %u\r\n", os_free_heap_size());
     return 0;
 }
-
 static cli_command_node_t cli_command_tbl[] = {
     {"echo", _command_echo,},
     {"free", _command_free,},
@@ -50,10 +49,11 @@ static os_ble_service_t * my_services[2];
 
 int main(int argc, char * argv[]){
     osKernelInitialize();
-    os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
 
-    my_services[0] = os_ble_uart_service(0, 0);
+    my_services[0] = os_ble_uart_service(0, PS_UART0_RX);
     os_ble_daemon_start(PS_BLE_EVENTS,PS_BLE_CONTROL, my_services);
+
+    os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
 
     osThreadDef_t t = (osThreadDef_t){
         .name = "watcher",

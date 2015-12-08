@@ -16,7 +16,7 @@ osStatus os_ble_daemon_start(ps_topic_t status, ps_topic_t control, const os_ble
  * @rx: channel which messages come in
  * @tx: channel to send out messages
  */
-os_ble_service_t * os_ble_uart_service(ps_topic_t rx, ps_topic_t tx);
+os_ble_service_t * os_ble_uart_service(ps_topic_t listen, ps_topic_t publish);
 
 
 #endif

@@ -3,6 +3,7 @@ file(GLOB src
     "${sdk_location}/components/ble/common/*.c"
     "${sdk_location}/components/ble/ble_advertising/*.c"
     "${sdk_location}/components/drivers_nrf/pstorage/pstorage.c"
+    "${sdk_location}/components/ble/ble_services/ble_nus/ble_nus.c"
     )
 
 

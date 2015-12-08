@@ -50,6 +50,9 @@ include_directories(
     "${sdk_location}/components/libraries/trace"
     #pstorage
     "${sdk_location}/components/drivers_nrf/pstorage"
+    #nus service
+    "${sdk_location}/components/ble/ble_services/ble_nus"
+    
     )
 
 ##############################################
