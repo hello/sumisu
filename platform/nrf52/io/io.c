@@ -34,23 +34,36 @@ static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context
             }
             break;
         case NRF_DRV_UART_EVT_RX_DONE:
-            if( *echo_buffer == '\r' || *echo_buffer == '\n' ) {
-                nrf_drv_uart_tx("\r\n",2);
-                if( command_buffer_idx != 0){
+            switch(*echo_buffer){
+                case 127://del character
+                case 0x08://backspace
                     command_buffer[command_buffer_idx] = 0;
-                    ps_publish(out_topic, command_buffer, command_buffer_idx);
-                }
-                command_buffer_idx = 0;
-            }else{
-                command_buffer[command_buffer_idx++] = *echo_buffer;
-                if(command_buffer_idx >= COMMAND_BUFFER_SIZE){
+                    if( command_buffer_idx ){
+                        command_buffer_idx -= 1;
+                    }
+                    break;
+                case '\r':
+                case '\n':
+                    nrf_drv_uart_tx("\r\n",2);
+                    if( command_buffer_idx != 0){
+                        command_buffer[command_buffer_idx] = 0;
+                        ps_publish(out_topic, command_buffer, command_buffer_idx);
+                        memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
+                    }
                     command_buffer_idx = 0;
-                }
+                    break;
+                default:
+                    command_buffer[command_buffer_idx++] = *echo_buffer;
+                    if(command_buffer_idx >= COMMAND_BUFFER_SIZE){
+                        command_buffer_idx = 0;
+                    }
+                    break;
             }
-
+            //echo back to console
             if(is_ascii(*echo_buffer)){
                 nrf_drv_uart_tx(echo_buffer, 1);
             }
+            //accept next character
             nrf_drv_uart_rx(echo_buffer, 1);
             break;
         default:
