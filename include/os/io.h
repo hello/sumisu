@@ -22,6 +22,10 @@ void os_log(uint32_t loglevel, const char * format, ...);
 uint32_t os_get_loglevel(void);
 void os_set_loglevel(uint32_t loglevel);
 
+#include "pubsub_topics.h"
+void os_uart_set_broadcast_topic(ps_topic_t topic);
+
+
 /*
  * platform specific
  */

@@ -2,6 +2,7 @@
 #define PUBSUB_TOPICS_H
 
 typedef enum{
+    PS_NULL = 0,            //0 is NULL as a service
     PS_SYSTEM,              //indicates system events
     PS_TEST_0,              //for testing
     PS_UART0_RX,            //uart input

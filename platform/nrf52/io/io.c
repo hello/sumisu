@@ -17,6 +17,7 @@ static uint8_t output_buffer[1];
 static uint8_t command_buffer[COMMAND_BUFFER_SIZE+1];
 static uint32_t command_buffer_idx;
 static app_fifo_t out;
+static ps_topic_t out_topic;
 
 static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context);
 
@@ -37,7 +38,7 @@ static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context
                 nrf_drv_uart_tx("\r\n",2);
                 if( command_buffer_idx != 0){
                     command_buffer[command_buffer_idx] = 0;
-                    ps_publish(PS_UART0_RX, command_buffer, command_buffer_idx);
+                    ps_publish(out_topic, command_buffer, command_buffer_idx);
                 }
                 command_buffer_idx = 0;
             }else{
@@ -66,4 +67,7 @@ void os_uart_init(void){
         static char out_buf[UART0_OUTBUF_SIZE];
         app_fifo_init(&out, out_buf, sizeof(out_buf));
     }
+}
+void os_uart_set_broadcast_topic(ps_topic_t topic){
+    out_topic = topic;
 }
