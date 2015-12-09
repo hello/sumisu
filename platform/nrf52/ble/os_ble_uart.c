@@ -8,8 +8,8 @@
 #include "util.h"
 
 #define NUS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
-static void _init(void);
-static void _event(ble_evt_t * p_ble_evt);
+static uint32_t _init(void);
+static uint32_t _event(ble_evt_t * p_ble_evt);
 
 static struct{
     os_ble_service_t service;
@@ -50,7 +50,7 @@ static void _watcher(const void * arg){
     LOGE("BLE_UART watcher exited");
     END_THREAD();
 }
-static void _init(void){
+static uint32_t _init(void){
     LOGD("Init uart service\r\n");
     uint32_t       err_code;
     ble_nus_init_t nus_init;
@@ -60,7 +60,6 @@ static void _init(void){
     nus_init.data_handler = _nus_data_handler;
     
     err_code = ble_nus_init(&self.m_nus, &nus_init);
-    APP_ERROR_CHECK(err_code);
 
     osThreadDef_t t = (osThreadDef_t){
         .name = "BLE_UARTd",
@@ -70,11 +69,12 @@ static void _init(void){
         .stacksize = 256,
     };
     osThreadCreate(&t, NULL);
-    
+    return err_code;
 }
 
-static void _event(ble_evt_t * p_ble_evt){
+static uint32_t _event(ble_evt_t * p_ble_evt){
     ble_nus_on_ble_evt(&self.m_nus, p_ble_evt);
+    return 0;
 }
 
 os_ble_service_t * os_ble_uart_service(ps_topic_t listen, ps_topic_t publish){

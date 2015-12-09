@@ -17,6 +17,16 @@ osStatus os_ble_daemon_start(ps_topic_t listen, ps_topic_t broadcast, const os_b
  * @tx: channel to send out messages
  */
 os_ble_service_t * os_ble_uart_service(ps_topic_t listen, ps_topic_t publish);
+/**
+ * Battery service
+ * @listen: channel which messages come in
+ */
+os_ble_service_t * os_ble_battery_service(ps_topic_t listen);
+/**
+ * Device information service
+ * device information is same for all sumisu builds
+ */
+os_ble_service_t * os_ble_device_info_service(void);
 
 
 #endif
