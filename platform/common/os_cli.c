@@ -1,4 +1,5 @@
-#include "cli.h"
+#include "os_cli.h"
+#include "heap.h"
 #include "cmsis_os.h"
 #include "io.h"
 #include "util.h"
@@ -61,7 +62,7 @@ static osStatus _handle_command(char * string, size_t string_size, const cli_com
     char * argv[CLI_MAX_ARGS] = {0};
     int argc = _tokenize(string,argv);
     while(itr->command){
-        if( strcmp(itr->command, argv[0]) == 0 && itr->cb ){
+        if( strncmp(itr->command, argv[0], strlen(itr->command)) == 0 && itr->cb ){
             *ret_code = itr->cb(argc, argv);
             return osOK;
         }
@@ -74,7 +75,7 @@ static void _cli_daemon(const void * arg){
     ps_channel_t * ch = ps_subscribe(ctx->topic);
     LOGI("Connecting CLI to channel %u\r\n", ctx->topic);
     while(ch){
-        LOGI("%u>",ctx->topic);
+        LOGD("%u>",ctx->topic);
         ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
         if ( msg ){
             int code = 0;
@@ -93,7 +94,7 @@ static void _cli_daemon(const void * arg){
 
 osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_command_node_t * head){
     osThreadDef_t t = (osThreadDef_t){
-        .name = "cli",
+        .name = "clid",
         .pthread = _cli_daemon,
         .tpriority = 2,
         .instances = 1,
@@ -104,9 +105,9 @@ osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_comm
         ctx->topic = topic;
         ctx->fork_stack_size = stack_size;
         ctx->tbl = head;
-        osThreadCreate(&t, ctx);
-    }else{
-        return osErrorNoMemory;
+        if(osThreadCreate(&t, ctx)){
+            return osOK;
+        }
     }
-
+    return osErrorNoMemory;
 }

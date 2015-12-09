@@ -1,0 +1,26 @@
+#include "os_ble.h"
+#include "os_ble_internals.h"
+#include "cmsis_os.h"
+
+
+static struct{
+    os_ble_service_t service;
+}self;
+
+static uint32_t _init(void);
+static uint32_t _event(ble_evt_t * p_ble_evt);
+
+uint32_t _init(void){
+
+}
+uint32_t _event(ble_evt_t * p_ble_evt){
+
+}
+
+os_ble_service_t * os_ble_template_service(ps_topic_t listen, ps_topic_t publish){
+    self.service = (os_ble_service_t){
+        .init = _init,
+        .event = _event,
+    };
+    return &self.service;
+}

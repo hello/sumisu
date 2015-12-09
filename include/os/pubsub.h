@@ -1,7 +1,7 @@
 #ifndef PUBSUB_H
 #define PUBSUB_H
 
-#include "pubsub_channels.h"
+#include "pubsub_topics.h"
 #include "stddef.h"
 #include "cmsis_os.h"
 /**
@@ -28,6 +28,7 @@ osStatus ps_init(void);
  * warning: this does not guarantee message delivery due to:
  * 1. late subscription
  * 2. slow subscriber
+ * 3. wrong message type sent
  */
 osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz);
 /*
