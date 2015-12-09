@@ -1,6 +1,7 @@
 #include "pubsub.h"
 #include "util.h"
 #include "io.h"
+#include "heap.h"
 #include <string.h>
 
 /**
@@ -83,6 +84,9 @@ osStatus ps_init(void){
 }
 
 osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
+    if( !data || !sz ){
+        return osErrorParameter;
+    }
     ps_channel_t * itr = _channel_list_append(topic, NULL);
     while ( itr ){
         ps_message_t * msg = osMailAlloc(itr->q, 0);

@@ -36,6 +36,7 @@ set(CMAKE_C_FLAGS
     "-DS132 -DSOFTDEVICE_PRESENT"
     "-DBSP_DEFINES_ONLY"
     "-DBLE_STACK_SUPPORT_REQD"
+    "-std=gnu99"
     "-D${TARGET_HARDWARE}"
     #"-x assembler-with-cpp"
     )
