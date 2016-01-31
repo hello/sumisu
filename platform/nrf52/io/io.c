@@ -10,76 +10,62 @@
 #include "nrf_drv_config.h"
 #include "pubsub.h"
 
-#define COMMAND_BUFFER_SIZE 64
-static const char * const g_pcHex = "0123456789ABCDEF";
+#include <SEGGER_RTT_Conf.h>
+#include <SEGGER_RTT.h>
 
-static uint8_t echo_buffer[1];
-static uint8_t output_buffer[1];
+#define LOG_TERMINAL_NORMAL 0
+#define LOG_TERMINAL_INPUT 0
+
+static char buf_normal_up[BUFFER_SIZE_UP];
+static char buf_down[BUFFER_SIZE_DOWN];
+
+#define COMMAND_BUFFER_SIZE BUFFER_SIZE_DOWN
 static uint8_t command_buffer[COMMAND_BUFFER_SIZE+1];
 static uint32_t command_buffer_idx;
-static app_fifo_t out;
 static ps_topic_t out_topic;
 
-static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context);
-
 void os_putc(char c){
-    app_fifo_put(&out, c);
-    nrf_drv_uart_tx("", 1);
+    SEGGER_RTT_Write( LOG_TERMINAL_NORMAL, &c, 1 );
 }
 
-static void _uart_event_handler(nrf_drv_uart_event_t * p_event, void * p_context){
-    switch(p_event->type){
-        case NRF_DRV_UART_EVT_TX_DONE:
-            if(NRF_SUCCESS == app_fifo_get(&out, output_buffer)){
-                nrf_drv_uart_tx(output_buffer, 1);
-            }
-            break;
-        case NRF_DRV_UART_EVT_RX_DONE:
-            switch(*echo_buffer){
-                case 127://del character
-                case 0x08://backspace
-                    command_buffer[command_buffer_idx] = 0;
-                    if( command_buffer_idx ){
-                        command_buffer_idx -= 1;
-                    }
-                    break;
-                case '\r':
-                case '\n':
-                    nrf_drv_uart_tx("\r\n",2);
-                    if( command_buffer_idx != 0){
-                        command_buffer[command_buffer_idx] = 0;
-                        ps_publish(out_topic, command_buffer, command_buffer_idx+1);
-                        memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
-                    }
-                    command_buffer_idx = 0;
-                    break;
-                default:
-                    command_buffer[command_buffer_idx++] = *echo_buffer;
-                    if(command_buffer_idx >= COMMAND_BUFFER_SIZE){
-                        command_buffer_idx = 0;
-                    }
-                    break;
-            }
-            //echo back to console
-            if(is_ascii(*echo_buffer)){
-                nrf_drv_uart_tx(echo_buffer, 1);
-            }
-            //accept next character
-            nrf_drv_uart_rx(echo_buffer, 1);
-            break;
-        default:
-        case NRF_DRV_UART_EVT_ERROR:
-            break;
+static void _rtt_daemon(const void * arg){
+    while(1){
+        memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
+        command_buffer_idx = SEGGER_RTT_Read( LOG_TERMINAL_INPUT, &command_buffer, COMMAND_BUFFER_SIZE );
+        if( command_buffer_idx > 0 ) {
+            ps_publish(out_topic, command_buffer, command_buffer_idx+1);
+        } else {
+            osDelay(100);
+        }
     }
+
+    END_THREAD();
+}
+
+static uint32_t rtt_init(void)
+{
+    if (SEGGER_RTT_ConfigUpBuffer(LOG_TERMINAL_NORMAL,"OUT",buf_normal_up, BUFFER_SIZE_UP,SEGGER_RTT_MODE_NO_BLOCK_TRIM) != 0) {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    if (SEGGER_RTT_ConfigDownBuffer(LOG_TERMINAL_INPUT,"IN",buf_down,BUFFER_SIZE_DOWN,SEGGER_RTT_MODE_NO_BLOCK_SKIP) != 0) {
+        return NRF_ERROR_INVALID_STATE;
+    }
+    return NRF_SUCCESS;
 }
 
 void os_uart_init(void){
-    nrf_drv_uart_config_t config = NRF_DRV_UART_DEFAULT_CONFIG;
-    ret_code_t ret = nrf_drv_uart_init(&config, _uart_event_handler);
-    nrf_drv_uart_rx(echo_buffer, 1);
-    {
-        static char out_buf[UART0_OUTBUF_SIZE];
-        app_fifo_init(&out, out_buf, sizeof(out_buf));
+    rtt_init();
+    
+    osThreadDef_t t = (osThreadDef_t){
+        .name = "rttd",
+        .pthread = _rtt_daemon,
+        .tpriority = 2,
+        .instances = 1,
+        .stacksize = 256,
+    };
+    if(osThreadCreate(&t, NULL)){
+        return osOK;
     }
 }
 void os_uart_set_broadcast_topic(ps_topic_t topic){

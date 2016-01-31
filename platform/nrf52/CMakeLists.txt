@@ -26,6 +26,7 @@ include_directories(
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
+    "${sdk_location}/components/drivers_ext/segger_rtt"
     "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
