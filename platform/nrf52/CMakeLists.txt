@@ -26,15 +26,13 @@ include_directories(
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
-    "${sdk_location}/components/libraries/fifo"
+    "${sdk_location}/components/drivers_ext/segger_rtt"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
     "${sdk_location}/examples/bsp"
-    #platform
-    "${sdk_location}/components/drivers_nrf/uart"
     #delay
     "${sdk_location}/components/drivers_nrf/delay"
     #freertos
@@ -56,6 +54,8 @@ include_directories(
     "${sdk_location}/components/ble/ble_services/ble_bas"
     #device information
     "${sdk_location}/components/ble/ble_services/ble_dis"
+    #segger
+    "${sdk_location}/components/drivers_ext/segger_rtt"
     )
 
 ##############################################
