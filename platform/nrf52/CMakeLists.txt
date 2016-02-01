@@ -27,15 +27,12 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/drivers_ext/segger_rtt"
-    "${sdk_location}/components/libraries/fifo"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
     "${sdk_location}/examples/bsp"
-    #platform
-    "${sdk_location}/components/drivers_nrf/uart"
     #delay
     "${sdk_location}/components/drivers_nrf/delay"
     #freertos

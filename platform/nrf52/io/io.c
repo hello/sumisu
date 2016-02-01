@@ -4,9 +4,7 @@
 #include "io.h"
 #include "nrf.h"
 #include "bsp.h"
-#include "nrf_drv_uart.h"
 #include "util.h"
-#include "app_fifo.h"
 #include "nrf_drv_config.h"
 #include "pubsub.h"
 
