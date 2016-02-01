@@ -57,6 +57,8 @@ include_directories(
     "${sdk_location}/components/ble/ble_services/ble_bas"
     #device information
     "${sdk_location}/components/ble/ble_services/ble_dis"
+    #segger
+    "${sdk_location}/components/drivers_ext/segger_rtt"
     )
 
 ##############################################

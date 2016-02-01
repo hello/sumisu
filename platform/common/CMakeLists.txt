@@ -7,7 +7,6 @@ file(GLOB src
 
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${sdk_location}/components/drivers_ext/segger_rtt"
     )
 
 add_library(platform_common OBJECT ${src})
