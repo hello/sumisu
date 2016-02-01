@@ -5,7 +5,7 @@ file(GLOB io_src
     "${sdk_location}/components/drivers_ext/segger_rtt/RTT_Syscalls_GCC.c"
     "${sdk_location}/components/drivers_ext/segger_rtt/SEGGER_RTT_printf.c"
     "${sdk_location}/components/drivers_ext/segger_rtt/SEGGER_RTT.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io_rtt.c"
     )
 
 
