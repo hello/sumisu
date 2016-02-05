@@ -54,7 +54,7 @@ static os_ble_service_t * my_services[4];
 int main(int argc, char * argv[]){
     osKernelInitialize();
 
-    os_uart_set_broadcast_topic(PS_UART0_RX);
+    os_io_set_broadcast_topic(PS_UART0_RX);
 
     my_services[0] = os_ble_uart_service(PS_UART0_TX, PS_UART0_RX);
     my_services[1] = os_ble_battery_service(PS_NULL);

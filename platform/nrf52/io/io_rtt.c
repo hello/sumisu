@@ -1,3 +1,6 @@
+/**
+ * this file implements the io interface with RTT
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -48,9 +51,9 @@ static void _rtt_init(void){
     osThreadCreate(&t, NULL);/*TODO assert*/
 }
 
-void os_uart_init(void){
+void os_io_init(void){
     _rtt_init();
 }
-void os_uart_set_broadcast_topic(ps_topic_t topic){
+void os_io_set_broadcast_topic(ps_topic_t topic){
     out_topic = topic;
 }

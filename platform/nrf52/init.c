@@ -22,7 +22,7 @@ osStatus osKernelInitialize (void){
     os_rand_add_entroy(1);
 
     //setup uart
-    os_uart_init();
+    os_io_init();
     LOGI("Welcome to sumisu - nrf52\r\n");
 
     return ret;
