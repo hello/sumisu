@@ -44,7 +44,7 @@ osStatus ps_free_message(ps_message_t * message);
  * adds an additional topic to the channel, 
  * messages are differentiated by the topic field in ps_message
  */
-ps_channel_t * ps_add_topic(ps_channel_t * ch, ps_topic_t topic);
+osStatus ps_add_topic(ps_channel_t * ch, ps_topic_t topic);
 /**
  * flush channel cleans up the channel from all messages
  * useful when listening again after some time

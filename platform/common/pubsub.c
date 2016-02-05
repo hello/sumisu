@@ -132,10 +132,17 @@ osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
     }
     return osOK;
 }
+osStatus ps_add_topic(ps_channel_t * ch, ps_topic_t topic){
+    if(ch){
+        _channel_list_append(topic, ch);
+        return osOK;
+    }
+    return osErrorParameter;
+}
 ps_channel_t * ps_subscribe(ps_topic_t topic){
     ps_channel_t  * ret = _new_channel(DEFAULT_PS_QUEUE_DEPTH);
     if(ret){
-        _channel_list_append(topic, ret);
+        ps_add_topic(ret, topic);
     }
     return ret;
 }

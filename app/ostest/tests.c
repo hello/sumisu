@@ -206,6 +206,14 @@ static void _test_0_sender(const void * arg){
     }
     END_THREAD();
 }
+static void _test_p_sender(const void * arg){
+    int i = 0;
+    while(i++ < TEST_PS_COUNT){
+        TEST_ASSERT_EQUAL(osOK, ps_publish(*(uint32_t*)arg, testmsg, sizeof(testmsg)));
+        osDelay(1);
+    }
+    END_THREAD();
+}
 void test_ps(void){
     ps_channel_t * ch = NULL;
 test_no_message:
@@ -251,6 +259,41 @@ test_throughput:
         uint64_t t1 = uptime();
         ps_end = 1;
         LOGT("Throughput %u packets/s\r\n", counter * 1000/((uint32_t)(t1-t0)));
+        osDelay(2000);
+        ps_flush_channel(ch);
+        osDelay(1000);
+        TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
+    }
+test_mpsc:
+    {
+        uint32_t orig_heap = os_free_heap_size();
+        osThreadDef_t t = (osThreadDef_t){
+            .name = "runner",
+            .pthread = _test_p_sender,
+            .tpriority = 2,
+            .instances = 1,
+            .stacksize = 256,
+        };
+        uint32_t p0 = PS_TEST_0;
+        uint32_t p1 = PS_TEST_0+1;
+        uint32_t p0count = 0;
+        uint32_t p1count = 0;
+        osThreadCreate(&t, &p0);
+        osThreadCreate(&t, &p1);
+        int counter = 0;
+        TEST_ASSERT(osOK == ps_add_topic(ch, p0));
+        TEST_ASSERT(osOK == ps_add_topic(ch, p1));
+        while(++counter < (TEST_PS_COUNT * 2)){
+            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+            TEST_ASSERT_NOT_NULL(msg);
+            if(msg->topic == p0){
+                p0count++;
+            }
+            if(msg->topic == p1){
+                p1count++;
+            }
+            ps_free_message(msg);
+        }
         osDelay(2000);
         ps_flush_channel(ch);
         osDelay(1000);
