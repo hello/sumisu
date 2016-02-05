@@ -14,7 +14,7 @@
 #define LOGE(...) os_log(LOG_LEVEL_ERROR, __VA_ARGS__)
 #define LOGT(...) os_log(LOG_LEVEL_TEST,  __VA_ARGS__)
 
-void os_uart_init(void);
+void os_io_init(void);
 /**
  * Use this for development
  */
@@ -23,7 +23,7 @@ uint32_t os_get_loglevel(void);
 void os_set_loglevel(uint32_t loglevel);
 
 #include "pubsub_topics.h"
-void os_uart_set_broadcast_topic(ps_topic_t topic);
+void os_io_set_broadcast_topic(ps_topic_t topic);
 
 
 /*

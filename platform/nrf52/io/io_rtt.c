@@ -1,3 +1,6 @@
+/**
+ * this file implements the io interface with RTT
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -52,7 +55,7 @@ static uint32_t rtt_init(void)
     return NRF_SUCCESS;
 }
 
-void os_uart_init(void){
+void os_io_init(void){
     rtt_init();
     
     osThreadDef_t t = (osThreadDef_t){
@@ -66,6 +69,7 @@ void os_uart_init(void){
         return osOK;
     }
 }
-void os_uart_set_broadcast_topic(ps_topic_t topic){
+
+void os_io_set_broadcast_topic(ps_topic_t topic){
     out_topic = topic;
 }

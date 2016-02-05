@@ -4,65 +4,89 @@
 #include "heap.h"
 #include <string.h>
 
+struct ps_channel{
+    osMailQId q;
+};
 /**
  * this directly affects the throughput of the pubsub system
  */
 #define DEFAULT_PS_QUEUE_DEPTH 10
-
-
-struct ps_channel_t{
-    osMailQId q;
-    ps_channel_t * next;
-};
-
 static ps_channel_t * _new_channel(size_t depth);
-/**
- * TODO have better data structure
- */
-static osMutexId _channel_lock;
-static ps_channel_t * _channels[PS_TOPIC_SIZE];
+
+
+/*****************************
+ * CHANNEL MANAGEMENT STUFF
+ * TODO: better data structure, array of linked list right now
+ ****************************/
+typedef struct ps_channel_list{
+    ps_channel_t * channel;
+    ps_channel_list_t * next;
+}ps_channel_list_t;
+static osMutexId _channel_list_lock;
+static ps_channel_list_t * _channels[PS_TOPIC_SIZE];
+static osStatus _channel_list_init(void);
+static ps_channel_list_t * _channel_list_append(ps_topic_t topic, ps_channel_t * ch);
+
+static void _lock_channel_list(void){
+    osStatus rc = osMutexWait(_channel_list_lock, osWaitForever);
+    if ( rc == osOK || rc == osErrorISR ){
+        //we are OK
+    }else{
+        LOGE("Fatal Error, channel list not initiated\r\n");
+    }
+}
+static void _unlock_channel_list(void){
+    osMutexRelease(_channel_list_lock);
+}
+
+static ps_channel_list_t * _channel_list_from_topic(ps_topic_t topic){
+    ps_channel_list_t * head = NULL;
+    if ( topic < PS_TOPIC_END ){
+        head = _channels[topic];
+    }
+    return head;
+}
 
 static osStatus _channel_list_init(void){
     osMutexDef_t mdef = (osMutexDef_t){0};
-    _channel_lock = osMutexCreate(&mdef);
-    if( !_channel_lock ){
+    _channel_list_lock = osMutexCreate(&mdef);
+    if( !_channel_list_lock ){
         return osErrorResource;
     }
     return osOK;
 }
-static ps_channel_t * _append(ps_channel_t * head, ps_channel_t * node){
-    if(!head){
-        return node;
-    }else{
-        ps_channel_t * itr = head;
-        while(itr->next){
-            itr = itr->next;
-        }
-        itr->next = node;
-    }
-    return head;
-}
 /**
- * appends ch into the topic channel list if ch is not null
- * then returns the first element of the ps_channel_t linked list from that topic
+ *  creates a node on the channel list and set its contents to ch
+ *  then return the head of channel list
  */
-static ps_channel_t * _channel_list_append(ps_topic_t topic, ps_channel_t * ch){
-    osStatus rc;
-    ps_channel_t * ret = NULL;
-    rc = osMutexWait(_channel_lock, osWaitForever);
-    if( rc == osOK || rc == osErrorISR){//exception is we are in isr
-        ret = _channels[topic];
-        if( ch ){
-            _channels[topic] = _append(ret, ch);
-            ret = _channels[topic];
-        }
-        osMutexRelease(_channel_lock);
-    }else{
-        LOGE("Fatal Error, channel list not initiated\r\n");
+static ps_channel_list_t * _channel_list_append(ps_topic_t topic, ps_channel_t * ch){
+    if ( topic >= PS_TOPIC_SIZE ){
+        return NULL;
     }
+    _lock_channel_list();
+    if ( ch ) {
+        //assume there are no duplicates on the ch
+        ps_channel_list_t * itr = _channels[topic];
+        ps_channel_list_t * node = os_malloc(sizeof(*node));
+        node->channel = ch;
+        node->next = NULL;
+        if ( !itr ){
+            _channels[topic]  = node;
+        }else{
+            while(itr->next){
+                itr = itr->next;
+            }
+            itr->next = node;
+        }
+    }
+    ps_channel_list_t * ret = _channels[topic];
+    _unlock_channel_list();
     return ret;
 }
 
+/**
+ * PUBSUB STUFF
+ */
 static ps_channel_t * _new_channel(size_t depth){
     osMailQDef_t def = (osMailQDef_t){
         .queue_sz = depth,
@@ -83,6 +107,7 @@ osStatus ps_init(void){
     return _channel_list_init();
 }
 
+//finish this
 osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
     if( !data || !sz ){
         return osErrorParameter;
