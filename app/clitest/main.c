@@ -4,6 +4,8 @@
 #include "os_cli.h"
 #include "util.h"
 
+#define PS_UART0_RX 0
+
 static int _command_echo(int argc, char * argv[]){
     if(argc > 1){
         int i;

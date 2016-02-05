@@ -5,6 +5,12 @@
 #include "util.h"
 #include "os_ble.h"
 
+#define PS_NULL 0
+#define PS_UART0_TX 1
+#define PS_UART0_RX 2
+#define PS_BLE_CONTROL 3
+#define PS_BLE_EVENTS 4
+
 static int _command_echo(int argc, char * argv[]){
     if(argc > 1){
         int i;

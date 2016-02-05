@@ -14,6 +14,10 @@ static osMutexId gmutex = NULL;
 #define TEST_MAIL_ITEM_SIZE 16
 #define TEST_MAIL_SEND_COUNT 10
 
+#define PS_TEST_0 0
+#define PS_TEST_1 1
+#define PS_TEST_2 2
+
 static void _val_thread(void const * arg){
     gtest_thread_creation_val = 1;
     END_THREAD();
