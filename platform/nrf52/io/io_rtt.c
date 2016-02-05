@@ -38,10 +38,6 @@ static void _rtt_daemon(const void * arg){
 static void _rtt_init(void){
     RTT_INIT_UP_CH(LOG_TERMINAL, "OUT", BUFFER_SIZE_UP, SEGGER_RTT_MODE_NO_BLOCK_TRIM);
     RTT_INIT_DOWN_CH(LOG_TERMINAL, "IN", BUFFER_SIZE_DOWN, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
-}
-
-void os_uart_init(void){
-    _rtt_init();
     osThreadDef_t t = (osThreadDef_t){
         .name = "rttd",
         .pthread = _rtt_daemon,
@@ -49,9 +45,11 @@ void os_uart_init(void){
         .instances = 1,
         .stacksize = 256,
     };
-    if(osThreadCreate(&t, NULL)){
-        return osOK;
-    }
+    osThreadCreate(&t, NULL);/*TODO assert*/
+}
+
+void os_uart_init(void){
+    _rtt_init();
 }
 void os_uart_set_broadcast_topic(ps_topic_t topic){
     out_topic = topic;
