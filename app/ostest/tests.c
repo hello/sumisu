@@ -210,7 +210,7 @@ static void _test_p_sender(const void * arg){
     int i = 0;
     while(i < (TEST_PS_COUNT)){
         TEST_ASSERT_EQUAL(osOK, ps_publish(*(uint32_t*)arg, testmsg, sizeof(testmsg)));
-        osDelay(2);
+        osDelay(0);
         i++;
     }
     END_THREAD();
@@ -261,9 +261,7 @@ test_throughput:
         uint64_t t1 = uptime();
         ps_end = 1;
         LOGT("Throughput %u packets/s\r\n", counter * 1000/((uint32_t)(t1-t0)));
-        osDelay(2000);
         ps_flush_channel(ch);
-        osDelay(1000);
         TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
     }
 test_mpsc:
@@ -299,9 +297,7 @@ test_mpsc:
         }
         TEST_ASSERT_EQUAL_INT(p1count, p0count);
         TEST_ASSERT_EQUAL_INT(p1count, TEST_PS_COUNT);
-        osDelay(2000);
         ps_flush_channel(ch);
-        osDelay(1000);
         TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
     }
 
