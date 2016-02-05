@@ -28,7 +28,7 @@ static cli_command_node_t cli_command_tbl[] = {
 int main(int argc, char * argv[]){
     osKernelInitialize();
 
-    os_uart_set_broadcast_topic(PS_UART0_RX);
+    os_io_set_broadcast_topic(PS_UART0_RX);
 
     os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
 
