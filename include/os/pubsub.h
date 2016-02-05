@@ -12,6 +12,7 @@
 
 typedef struct{
     osMailQId parent;
+    ps_topic_t topic;
     void * data;
     size_t sz;
 }ps_message_t;

@@ -98,6 +98,7 @@ osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
             }else{//try to implement copy once with reference count
                 msg->parent = itr->q;
                 msg->sz = sz;
+                msg->topic = topic;
                 memcpy(msg->data, data, sz);
                 osMailPut(itr->q, msg);
             }
