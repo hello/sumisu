@@ -11,21 +11,18 @@ struct ps_channel{
  * this directly affects the throughput of the pubsub system
  */
 #define DEFAULT_PS_QUEUE_DEPTH 10
-static ps_channel_t * _new_channel(size_t depth);
 
 
 /*****************************
- * CHANNEL MANAGEMENT STUFF
+ * CHANNEL MANAGEMENT IMPL
  * TODO: better data structure, array of linked list right now
  ****************************/
 typedef struct ps_channel_list{
     ps_channel_t * channel;
-    ps_channel_list_t * next;
+    struct ps_channel_list * next;
 }ps_channel_list_t;
 static osMutexId _channel_list_lock;
 static ps_channel_list_t * _channels[PS_TOPIC_SIZE];
-static osStatus _channel_list_init(void);
-static ps_channel_list_t * _channel_list_append(ps_topic_t topic, ps_channel_t * ch);
 
 static void _lock_channel_list(void){
     osStatus rc = osMutexWait(_channel_list_lock, osWaitForever);
@@ -41,7 +38,7 @@ static void _unlock_channel_list(void){
 
 static ps_channel_list_t * _channel_list_from_topic(ps_topic_t topic){
     ps_channel_list_t * head = NULL;
-    if ( topic < PS_TOPIC_END ){
+    if ( topic < PS_TOPIC_SIZE ){
         head = _channels[topic];
     }
     return head;
@@ -84,9 +81,10 @@ static ps_channel_list_t * _channel_list_append(ps_topic_t topic, ps_channel_t *
     return ret;
 }
 
-/**
- * PUBSUB STUFF
- */
+/*****************************
+ * PUBSUB API IMPL
+ * TODO reference count root message
+ ****************************/
 static ps_channel_t * _new_channel(size_t depth){
     osMailQDef_t def = (osMailQDef_t){
         .queue_sz = depth,
@@ -107,25 +105,27 @@ osStatus ps_init(void){
     return _channel_list_init();
 }
 
+
 //finish this
 osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz){
     if( !data || !sz ){
         return osErrorParameter;
     }
-    ps_channel_t * itr = _channel_list_append(topic, NULL);
+    ps_channel_list_t * itr = _channel_list_append(topic, NULL);
     while ( itr ){
-        ps_message_t * msg = osMailAlloc(itr->q, 0);
+        osMailQId q = itr->channel->q;
+        ps_message_t * msg = osMailAlloc(q, 0);
         if ( msg ){
             msg->data = (void*)os_malloc(sz);
             if ( ! msg->data ){
-                osMailFree(itr->q, msg);
+                osMailFree(q, msg);
                 return osErrorNoMemory;
             }else{//try to implement copy once with reference count
-                msg->parent = itr->q;
+                msg->parent = q;
                 msg->sz = sz;
                 msg->topic = topic;
                 memcpy(msg->data, data, sz);
-                osMailPut(itr->q, msg);
+                osMailPut(q, msg);
             }
         }
         itr = itr->next;

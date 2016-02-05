@@ -40,7 +40,7 @@ osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz);
 ps_channel_t * ps_subscribe(ps_topic_t topic);
 ps_message_t * ps_recv(const ps_channel_t * channel, uint32_t millisec, osStatus * opt_stat);
 osStatus ps_free_message(ps_message_t * message);
-/*
+/**
  * adds an additional topic to the channel, 
  * messages are differentiated by the topic field in ps_message
  */
