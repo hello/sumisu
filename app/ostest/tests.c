@@ -208,9 +208,10 @@ static void _test_0_sender(const void * arg){
 }
 static void _test_p_sender(const void * arg){
     int i = 0;
-    while(i++ < TEST_PS_COUNT){
+    while(i < (TEST_PS_COUNT)){
         TEST_ASSERT_EQUAL(osOK, ps_publish(*(uint32_t*)arg, testmsg, sizeof(testmsg)));
-        osDelay(1);
+        osDelay(2);
+        i++;
     }
     END_THREAD();
 }
@@ -250,11 +251,12 @@ test_throughput:
         osThreadCreate(&t,0);
         uint64_t t0 = uptime();
         int counter = 0;
-        while(++counter < (TEST_PS_COUNT));{
-            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+        ps_message_t * msg;
+        while( (msg = ps_recv(ch, 10, NULL)) ){
             TEST_ASSERT_NOT_NULL(msg);
             TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
             ps_free_message(msg);
+            counter++;
         }
         uint64_t t1 = uptime();
         ps_end = 1;
@@ -266,7 +268,6 @@ test_throughput:
     }
 test_mpsc:
     {
-        uint32_t orig_heap = os_free_heap_size();
         osThreadDef_t t = (osThreadDef_t){
             .name = "runner",
             .pthread = _test_p_sender,
@@ -274,17 +275,18 @@ test_mpsc:
             .instances = 1,
             .stacksize = 256,
         };
-        uint32_t p0 = PS_TEST_0;
-        uint32_t p1 = PS_TEST_0+1;
+        uint32_t p0 = PS_TEST_1;
+        uint32_t p1 = PS_TEST_2;
         uint32_t p0count = 0;
         uint32_t p1count = 0;
-        osThreadCreate(&t, &p0);
-        osThreadCreate(&t, &p1);
         int counter = 0;
         TEST_ASSERT(osOK == ps_add_topic(ch, p0));
         TEST_ASSERT(osOK == ps_add_topic(ch, p1));
-        while(++counter < (TEST_PS_COUNT * 2)){
-            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+        uint32_t orig_heap = os_free_heap_size();
+        osThreadCreate(&t, &p0);
+        osThreadCreate(&t, &p1);
+        ps_message_t * msg;
+        while( (msg = ps_recv(ch, 10, NULL)) ){
             TEST_ASSERT_NOT_NULL(msg);
             if(msg->topic == p0){
                 p0count++;
@@ -293,7 +295,10 @@ test_mpsc:
                 p1count++;
             }
             ps_free_message(msg);
+            counter++;
         }
+        TEST_ASSERT_EQUAL_INT(p1count, p0count);
+        TEST_ASSERT_EQUAL_INT(p1count, TEST_PS_COUNT);
         osDelay(2000);
         ps_flush_channel(ch);
         osDelay(1000);
