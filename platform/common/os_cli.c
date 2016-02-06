@@ -13,6 +13,30 @@ typedef struct{
 }cli_context_t;
 
 
+/****************************************
+ * We have some default commands so we don't have to reimplement for all apps!
+ **********************************/
+static int _command_echo(int argc, char * argv[]){
+    if(argc > 1){
+        int i;
+        for(i = 1; i < argc; i++){
+            LOGI("%s ", argv[i]);
+        }
+        LOGI("\r\n");
+    }
+    return 0;
+}
+#include "heap.h"
+static int _command_free(int argc, char * argv[]){
+    LOGI("Free %u\r\n", os_free_heap_size());
+    return 0;
+}
+static cli_command_node_t default_command_tbl[] = {
+    {"echo", _command_echo,},
+    {"free", _command_free,},
+    {0,0},
+};
+
 /**
  * much code copy pasted from
  * https://code.google.com/p/embox/source/browse/trunk/embox/src/lib/shell/tokenizer.c?r=6132
@@ -61,7 +85,7 @@ static osStatus _handle_command(char * string, size_t string_size, const cli_com
     const cli_command_node_t * itr = head;
     char * argv[CLI_MAX_ARGS] = {0};
     int argc = _tokenize(string,argv);
-    while(itr->command){
+    while(itr && itr->command){
         if( strncmp(itr->command, argv[0], strlen(itr->command)) == 0 && itr->cb ){
             *ret_code = itr->cb(argc, argv);
             return osOK;
@@ -79,12 +103,21 @@ static void _cli_daemon(const void * arg){
         ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
         if ( msg ){
             int code = 0;
-            osStatus ret = _handle_command(msg->data, msg->sz, ctx->tbl, &code);
+            osStatus ret;
+handle_default:
+            ret = _handle_command(msg->data, msg->sz, default_command_tbl, &code);
+            if( osOK == ret ){
+                LOGI("Command returned %d\r\n", code);
+                goto done;
+            }
+handle_user:
+            ret = _handle_command(msg->data, msg->sz, ctx->tbl, &code);
             if( osOK == ret ){
                 LOGI("Command returned %d\r\n", code);
             }else{
                 LOGI("Command not found\r\n");;
             }
+done:
             ps_free_message(msg);
         }
     }

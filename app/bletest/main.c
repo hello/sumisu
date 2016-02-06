@@ -11,29 +11,12 @@
 #define PS_BLE_CONTROL 3
 #define PS_BLE_EVENTS 4
 
-static int _command_echo(int argc, char * argv[]){
-    if(argc > 1){
-        int i;
-        for(i = 1; i < argc; i++){
-            LOGI("%s ", argv[i]);
-        }
-        LOGI("\r\n");
-    }
-    return 0;
-}
 static int _command_ble( int argc, char * argv[] ){
     int dummy = 0;
     ps_publish(PS_BLE_CONTROL, &dummy, sizeof(dummy));
     return 0;
 }
-#include "heap.h"
-static int _command_free(int argc, char * argv[]){
-    LOGI("Free %u\r\n", os_free_heap_size());
-    return 0;
-}
 static cli_command_node_t cli_command_tbl[] = {
-    {"echo", _command_echo,},
-    {"free", _command_free,},
     {"ble", _command_ble},
     {0,0},
 };
