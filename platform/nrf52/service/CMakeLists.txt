@@ -1,6 +1,7 @@
 
 file(GLOB service_src
     "${CMAKE_CURRENT_SOURCE_DIR}/os_imu.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/os_imu_driver_mpu6500.c"
     )
 
 
