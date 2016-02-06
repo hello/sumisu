@@ -56,6 +56,10 @@ include_directories(
     "${sdk_location}/components/ble/ble_services/ble_dis"
     #segger
     "${sdk_location}/components/drivers_ext/segger_rtt"
+    #uart
+    "${sdk_location}/components/drivers_nrf/uart"
+    "${sdk_location}/components/libraries/fifo"
+    
     )
 
 ##############################################

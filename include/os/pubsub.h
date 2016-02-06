@@ -12,11 +12,12 @@
 
 typedef struct{
     osMailQId parent;
+    ps_topic_t topic;
     void * data;
     size_t sz;
 }ps_message_t;
 
-typedef struct ps_channel_t  ps_channel_t;
+typedef struct ps_channel  ps_channel_t;
 
 /*
  * called by osKernelInit, once per app
@@ -39,6 +40,11 @@ osStatus ps_publish(ps_topic_t topic, const void * data, size_t sz);
 ps_channel_t * ps_subscribe(ps_topic_t topic);
 ps_message_t * ps_recv(const ps_channel_t * channel, uint32_t millisec, osStatus * opt_stat);
 osStatus ps_free_message(ps_message_t * message);
+/**
+ * adds an additional topic to the channel, 
+ * messages are differentiated by the topic field in ps_message
+ */
+osStatus ps_add_topic(ps_channel_t * ch, ps_topic_t topic);
 /**
  * flush channel cleans up the channel from all messages
  * useful when listening again after some time
