@@ -31,9 +31,48 @@ static int _command_free(int argc, char * argv[]){
     LOGI("Free %u\r\n", os_free_heap_size());
     return 0;
 }
+static int _command_set_log_level(int argc, char * argv[]){
+    if (argc > 1){
+        char * itr = argv[1];
+        uint32_t mylevel = 0;
+        bool has_error = false;
+        while(*itr){
+            switch(*itr){
+                case 'D':
+                case 'd':
+                    mylevel |= LOG_LEVEL_DEBUG;
+                    break;
+                case 'I':
+                case 'i':
+                    mylevel |= LOG_LEVEL_INFO;
+                    break;
+                case 'E':
+                case 'e':
+                    mylevel |= LOG_LEVEL_ERROR;
+                    break;
+                case 'T':
+                case 't':
+                    mylevel |= LOG_LEVEL_TEST;
+                    break;
+                default:
+                    has_error = true;
+                    break;
+            }
+            itr++;
+        }
+        if( has_error ){
+            LOGE("Accepted characters are \"[DIET\"\r\n");
+            return -1;
+        }else{
+            os_set_loglevel(mylevel);
+        }
+    }
+    return 0;
+}
 static cli_command_node_t default_command_tbl[] = {
     {"echo", _command_echo,},
     {"free", _command_free,},
+    {"loglevel", _command_set_log_level,},
     {0,0},
 };
 
