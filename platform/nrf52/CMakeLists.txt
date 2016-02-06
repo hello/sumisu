@@ -82,6 +82,7 @@ add_to_platform(io)
 add_to_platform(misc)
 add_to_platform(ble)
 add_to_platform(freertos)
+add_to_platform(service)
 
 ##############################################
 # Build Lib(Must take place after Adding modules)

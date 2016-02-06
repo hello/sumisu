@@ -7,7 +7,7 @@ typedef struct{
 }os_imu_config_t;
 
 typedef struct{
-    const os_imu_config_t * config const;
+    const os_imu_config_t * config;
     uint32_t x;
     uint32_t y;
     uint32_t z;
