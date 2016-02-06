@@ -49,3 +49,6 @@ install_manifest.txt
 
 #ctags
 tags
+
+#ideas
+.idea/
