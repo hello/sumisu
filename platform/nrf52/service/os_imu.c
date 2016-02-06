@@ -17,6 +17,7 @@ static void _imu_daemon(const void * arg){
 
         osDelay(config.sampling_period);
     }
+    END_THREAD();
 }
 osStatus os_imu_daemon_start(ps_topic_t broadcast, const os_imu_config_t * user_config){
     config = *user_config; 
