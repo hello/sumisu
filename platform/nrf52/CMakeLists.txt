@@ -101,9 +101,15 @@ set(LINKER_FLAGS
     "-Xlinker"
     "-Map=${BUILD_OUTPUT_NAME}.map"
     )
+
 ##############################################
 # Convert hex of softdevice to binary
 ##############################################
 add_custom_target(softdevice_bin
     COMMAND ${OBJCOPY} -I ihex -O binary ${softdevice_path}/${softdevice_name} ${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin}
 add_dependencies(platform softdevice_bin)
+
+##############################################
+# Generate jlink flash output
+##############################################
+
