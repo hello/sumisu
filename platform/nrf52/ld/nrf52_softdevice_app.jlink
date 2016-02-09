@@ -1,0 +1,10 @@
+w4 0x4001E504 2 # NVIC: enable erase
+w4 0x4001E50C 1 # NVIC: erase all flash, including UICR
+sleep 50
+r
+w4 0x4001E504 1 # NVIC: enable write
+loadbin %SOFTDEVICE 0x0
+loadbin %APP 0x1f000 # 0x1f000 is implicit app address
+r
+q
+

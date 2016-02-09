@@ -107,10 +107,18 @@ set(LINKER_FLAGS
 # Convert hex of softdevice to binary
 ##############################################
 add_custom_target(softdevice_bin
-    COMMAND ${OBJCOPY} -I ihex -O binary ${softdevice_hex} ${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin}
+    COMMAND ${OBJCOPY} -I ihex -O binary ${softdevice_hex} ${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin)
 add_dependencies(platform softdevice_bin)
 
 ##############################################
 # Generate jlink flash output
 ##############################################
+set(jlink_input ${CMAKE_CURRENT_SOURCE_DIR}/ld/nrf52_softdevice_app.jlink)
+set(jlink_output ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.jlink)
+add_custom_target(jlink_script
+    COMMAND sed
+    -e "s,%SOFTDEVICE,${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin,g"
+    -e "s,%APP,${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.bin,g"
+    ${jlink_input} > ${jlink_output})
+add_dependencies(platform jlink_script)
 
