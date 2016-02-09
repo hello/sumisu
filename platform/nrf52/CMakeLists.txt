@@ -3,6 +3,8 @@ project(platform C ASM)
 
 set(sdk_version nRF52_SDK_0.9.2_dbc28c9)
 set(sdk_location ${CMAKE_CURRENT_SOURCE_DIR}/sdk/${sdk_version})
+set(softdevice_path ${sdk_location}/components/softdevice/s132/hex)
+set(softdevice_name s132_nrf52_1.0.0-3.alpha_softdevice.hex)
 
 file(GLOB platform_src_asm 
     "${sdk_location}/components/toolchain/gcc/gcc_startup_nrf52.s"
@@ -99,3 +101,9 @@ set(LINKER_FLAGS
     "-Xlinker"
     "-Map=${BUILD_OUTPUT_NAME}.map"
     )
+##############################################
+# Convert hex of softdevice to binary
+##############################################
+add_custom_target(softdevice_bin
+    COMMAND ${OBJCOPY} -I ihex -O binary ${softdevice_path}/${softdevice_name} ${EXECUTABLE_OUTPUT_PATH}/S132.bin)
+add_dependencies(platform softdevice_bin)
