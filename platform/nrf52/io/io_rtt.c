@@ -1,3 +1,6 @@
+/**
+ * this file implements the io interface with RTT
+ */
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -28,10 +31,24 @@ void os_putc(char c){
 
 static void _rtt_daemon(const void * arg){
     while(1){
-        memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
-        command_buffer_idx = SEGGER_RTT_Read( LOG_TERMINAL_INPUT, &command_buffer, COMMAND_BUFFER_SIZE );
-        if( command_buffer_idx > 0 ) {
-            ps_publish(out_topic, command_buffer, command_buffer_idx+1);
+        uint8_t inbuf[16] = {0};
+        int i, bytes_read;
+        if( (bytes_read = SEGGER_RTT_Read( LOG_TERMINAL_INPUT, inbuf, sizeof(inbuf))) ){
+            for(i = 0; i < bytes_read; i++){
+                uint8_t byte = inbuf[i];
+                if (byte == '\n' ||  command_buffer_idx >= COMMAND_BUFFER_SIZE ){
+                    ps_publish(out_topic, command_buffer, command_buffer_idx+1);
+                    command_buffer_idx = 0;
+                    memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
+                    break;
+                }else if(byte == 0x08 || byte == 0x7f){
+                    if(command_buffer_idx){
+                        command_buffer[command_buffer_idx--] = 0;
+                    }
+                }else{
+                    command_buffer[command_buffer_idx++] = byte;
+                }
+            }
         } else {
             osDelay(100);
         }
@@ -52,7 +69,7 @@ static uint32_t rtt_init(void)
     return NRF_SUCCESS;
 }
 
-void os_uart_init(void){
+void os_io_init(void){
     rtt_init();
     
     osThreadDef_t t = (osThreadDef_t){
@@ -66,6 +83,7 @@ void os_uart_init(void){
         return osOK;
     }
 }
-void os_uart_set_broadcast_topic(ps_topic_t topic){
+
+void os_io_set_broadcast_topic(ps_topic_t topic){
     out_topic = topic;
 }

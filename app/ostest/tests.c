@@ -14,6 +14,10 @@ static osMutexId gmutex = NULL;
 #define TEST_MAIL_ITEM_SIZE 16
 #define TEST_MAIL_SEND_COUNT 10
 
+#define PS_TEST_0 0
+#define PS_TEST_1 1
+#define PS_TEST_2 2
+
 static void _val_thread(void const * arg){
     gtest_thread_creation_val = 1;
     END_THREAD();
@@ -202,6 +206,15 @@ static void _test_0_sender(const void * arg){
     }
     END_THREAD();
 }
+static void _test_p_sender(const void * arg){
+    int i = 0;
+    while(i < (TEST_PS_COUNT)){
+        TEST_ASSERT_EQUAL(osOK, ps_publish(*(uint32_t*)arg, testmsg, sizeof(testmsg)));
+        osDelay(0);
+        i++;
+    }
+    END_THREAD();
+}
 void test_ps(void){
     ps_channel_t * ch = NULL;
 test_no_message:
@@ -238,18 +251,53 @@ test_throughput:
         osThreadCreate(&t,0);
         uint64_t t0 = uptime();
         int counter = 0;
-        while(++counter < (TEST_PS_COUNT));{
-            ps_message_t * msg = ps_recv(ch, osWaitForever, NULL);
+        ps_message_t * msg;
+        while( (msg = ps_recv(ch, 10, NULL)) ){
             TEST_ASSERT_NOT_NULL(msg);
             TEST_ASSERT_EQUAL_STRING_MESSAGE(testmsg, msg->data, "message not equal");
             ps_free_message(msg);
+            counter++;
         }
         uint64_t t1 = uptime();
         ps_end = 1;
         LOGT("Throughput %u packets/s\r\n", counter * 1000/((uint32_t)(t1-t0)));
-        osDelay(2000);
         ps_flush_channel(ch);
-        osDelay(1000);
+        TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
+    }
+test_mpsc:
+    {
+        osThreadDef_t t = (osThreadDef_t){
+            .name = "runner",
+            .pthread = _test_p_sender,
+            .tpriority = 2,
+            .instances = 1,
+            .stacksize = 256,
+        };
+        uint32_t p0 = PS_TEST_1;
+        uint32_t p1 = PS_TEST_2;
+        uint32_t p0count = 0;
+        uint32_t p1count = 0;
+        int counter = 0;
+        TEST_ASSERT(osOK == ps_add_topic(ch, p0));
+        TEST_ASSERT(osOK == ps_add_topic(ch, p1));
+        uint32_t orig_heap = os_free_heap_size();
+        osThreadCreate(&t, &p0);
+        osThreadCreate(&t, &p1);
+        ps_message_t * msg;
+        while( (msg = ps_recv(ch, 10, NULL)) ){
+            TEST_ASSERT_NOT_NULL(msg);
+            if(msg->topic == p0){
+                p0count++;
+            }
+            if(msg->topic == p1){
+                p1count++;
+            }
+            ps_free_message(msg);
+            counter++;
+        }
+        TEST_ASSERT_EQUAL_INT(p1count, p0count);
+        TEST_ASSERT_EQUAL_INT(p1count, TEST_PS_COUNT);
+        ps_flush_channel(ch);
         TEST_ASSERT_EQUAL_INT(orig_heap, os_free_heap_size());
     }
 
