@@ -1,7 +1,21 @@
 #include "os_imu_driver.h"
 #include "crypto.h"
+#include "nrf_drv_spi.h"
 
+static nrf_drv_spi_t _spi_context;
+static const nrf_drv_spi_t _spi_master = NRF_DRV_SPI_INSTANCE(0);
+
+void _spi_handler(nrf_drv_spi_event_t event){
+
+}
 osStatus os_imu_driver_init(const os_imu_config_t * config){
+    //first, use sensible defaults
+    nrf_drv_spi_config_t spi_config =(nrf_drv_spi_config_t)NRF_DRV_SPI_DEFAULT_CONFIG(0);
+    //override necessary defaults from user config
+    //None at this moment
+    if(NRF_SUCCESS != nrf_drv_spi_init(&_spi_master,&spi_config, _spi_handler)){
+        return osErrorResource;
+    }
     return osOK;
 }
 

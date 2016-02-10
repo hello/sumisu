@@ -29,7 +29,6 @@ include_directories(
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
-    "${sdk_location}/components/drivers_ext/segger_rtt"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
     #todo separate below
@@ -62,7 +61,8 @@ include_directories(
     #uart
     "${sdk_location}/components/drivers_nrf/uart"
     "${sdk_location}/components/libraries/fifo"
-    
+    #spi master
+    "${sdk_location}/components/drivers_nrf/spi_master"
     )
 
 ##############################################

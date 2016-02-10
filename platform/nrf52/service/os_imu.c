@@ -1,12 +1,13 @@
 #include "os_imu.h"
 #include "cmsis_os.h"
 #include "os_imu_driver.h"
+#include "util.h"
 
 static os_imu_config_t config;
 static ps_topic_t topic;
 
 static void _imu_daemon(const void * arg){
-    os_imu_driver_init(&config);
+    ASSERT_OK(os_imu_driver_init(&config));
     while(1){
         os_imu_data_t data = (os_imu_data_t){0};
         data.config = &config;
