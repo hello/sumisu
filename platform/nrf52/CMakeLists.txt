@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.12)
 project(platform C ASM)
 
 set(sdk_version nRF52_SDK_0.9.2_dbc28c9)
+set(softdevice_name s132_nrf52_1.0.0-3.alpha_softdevice)
 set(sdk_location ${CMAKE_CURRENT_SOURCE_DIR}/sdk/${sdk_version})
+set(softdevice_location ${sdk_location}/components/softdevice/s132)
+set(softdevice_hex ${softdevice_location}/hex/${softdevice_name}.hex)
 
 file(GLOB platform_src_asm 
     "${sdk_location}/components/toolchain/gcc/gcc_startup_nrf52.s"
@@ -99,3 +102,23 @@ set(LINKER_FLAGS
     "-Xlinker"
     "-Map=${BUILD_OUTPUT_NAME}.map"
     )
+
+##############################################
+# Convert hex of softdevice to binary
+##############################################
+add_custom_target(softdevice_bin
+    COMMAND ${OBJCOPY} -I ihex -O binary ${softdevice_hex} ${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin)
+add_dependencies(platform softdevice_bin)
+
+##############################################
+# Generate jlink flash output
+##############################################
+set(jlink_input ${CMAKE_CURRENT_SOURCE_DIR}/ld/nrf52_softdevice_app.jlink)
+set(jlink_output ${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.jlink)
+add_custom_target(jlink_script
+    COMMAND sed
+    -e "s,%SOFTDEVICE,${EXECUTABLE_OUTPUT_PATH}/${softdevice_name}.bin,g"
+    -e "s,%APP,${EXECUTABLE_OUTPUT_PATH}/${BUILD_OUTPUT_NAME}.bin,g"
+    ${jlink_input} > ${jlink_output})
+add_dependencies(platform jlink_script)
+
