@@ -31,10 +31,24 @@ void os_putc(char c){
 
 static void _rtt_daemon(const void * arg){
     while(1){
-        memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
-        command_buffer_idx = SEGGER_RTT_Read( LOG_TERMINAL_INPUT, &command_buffer, COMMAND_BUFFER_SIZE );
-        if( command_buffer_idx > 0 ) {
-            ps_publish(out_topic, command_buffer, command_buffer_idx+1);
+        uint8_t inbuf[16] = {0};
+        int i, bytes_read;
+        if( (bytes_read = SEGGER_RTT_Read( LOG_TERMINAL_INPUT, inbuf, sizeof(inbuf))) ){
+            for(i = 0; i < bytes_read; i++){
+                uint8_t byte = inbuf[i];
+                if (byte == '\n' ||  command_buffer_idx >= COMMAND_BUFFER_SIZE ){
+                    ps_publish(out_topic, command_buffer, command_buffer_idx+1);
+                    command_buffer_idx = 0;
+                    memset(command_buffer, COMMAND_BUFFER_SIZE, 0);
+                    break;
+                }else if(byte == 0x08 || byte == 0x7f){
+                    if(command_buffer_idx){
+                        command_buffer[command_buffer_idx--] = 0;
+                    }
+                }else{
+                    command_buffer[command_buffer_idx++] = byte;
+                }
+            }
         } else {
             osDelay(100);
         }
