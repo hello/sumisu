@@ -52,3 +52,6 @@ tags
 
 #ideas
 .idea/
+
+#JLINK
+JLinkTCPIP.log
