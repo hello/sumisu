@@ -50,7 +50,7 @@ int main(int argc, char * argv[]){
      */
     my_services[0] = os_ble_battery_service(PS_NULL);
     my_services[1] = os_ble_device_info_service();
-    my_services[2] = os_ble_smith_command_service(0,0);
+    my_services[2] = os_ble_smith_command_service(0,PS_UART0_RX);
     os_ble_daemon_start(PS_BLE_CONTROL, PS_BLE_EVENTS,(const os_ble_service_t **)my_services);
 
     os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
