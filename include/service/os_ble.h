@@ -8,13 +8,10 @@ typedef struct os_ble_service_t os_ble_service_t;
  * @status: the topic in which the daemon will broadcast the status to the app
  * @control: the topic in which the daemon will listen from the app
  */
-
 osStatus os_ble_daemon_start(ps_topic_t listen, ps_topic_t broadcast, const os_ble_service_t ** services);
 
 /**
  * UART service
- * @rx: channel which messages come in
- * @tx: channel to send out messages
  */
 os_ble_service_t * os_ble_uart_service(ps_topic_t listen, ps_topic_t publish);
 /**
@@ -27,6 +24,13 @@ os_ble_service_t * os_ble_battery_service(ps_topic_t listen);
  * device information is same for all sumisu builds
  */
 os_ble_service_t * os_ble_device_info_service(void);
+/**
+ * Smith command service
+ * @from_client: will broadcast decoded from client(phone) to smith
+ * @to_client:   will encode protobuf and send to client(phone)
+ */
+os_ble_service_t * os_ble_smith_command_service(ps_topic_t from_client, ps_topic_t to_client);
+
 
 
 #endif

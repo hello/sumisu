@@ -11,29 +11,12 @@
 #define PS_BLE_CONTROL 3
 #define PS_BLE_EVENTS 4
 
-static int _command_echo(int argc, char * argv[]){
-    if(argc > 1){
-        int i;
-        for(i = 1; i < argc; i++){
-            LOGI("%s ", argv[i]);
-        }
-        LOGI("\r\n");
-    }
-    return 0;
-}
 static int _command_ble( int argc, char * argv[] ){
     int dummy = 0;
     ps_publish(PS_BLE_CONTROL, &dummy, sizeof(dummy));
     return 0;
 }
-#include "heap.h"
-static int _command_free(int argc, char * argv[]){
-    LOGI("Free %u\r\n", os_free_heap_size());
-    return 0;
-}
 static cli_command_node_t cli_command_tbl[] = {
-    {"echo", _command_echo,},
-    {"free", _command_free,},
     {"ble", _command_ble},
     {0,0},
 };
@@ -65,6 +48,7 @@ int main(int argc, char * argv[]){
     my_services[0] = os_ble_uart_service(PS_UART0_TX, PS_UART0_RX);
     my_services[1] = os_ble_battery_service(PS_NULL);
     my_services[2] = os_ble_device_info_service();
+    my_services[3] = os_ble_smith_command_service(0,0);
     os_ble_daemon_start(PS_BLE_CONTROL, PS_BLE_EVENTS,(const os_ble_service_t **)my_services);
 
     os_cli_daemon_start(PS_UART0_RX, 256, cli_command_tbl);
