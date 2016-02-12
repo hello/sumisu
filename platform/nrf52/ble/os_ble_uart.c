@@ -34,18 +34,10 @@ static void _nus_data_handler(ble_nus_t * p_nus, uint8_t * p_data, uint16_t leng
 }
 static void _watcher(const void * arg){
     ps_channel_t * ch = ps_subscribe(self.listen);
-    while(ch){
-        ps_message_t * msg = NULL;
-        osStatus rc = osOK;
-        uint32_t err_code = 0;
-        msg = ps_recv(ch, osWaitForever, &rc);
-        if ( msg ){
-            err_code = ble_nus_string_send(&self.m_nus, msg->data, msg->sz);
-            
-            ps_free_message(msg);
-        }else{
-            LOGE("BLE_UARTd receive error %x\r\n", rc);
-        }
+    ps_message_t * msg = NULL;
+    while( ch && (msg = ps_recv(ch, osWaitForever, NULL)) ){
+        uint32_t err_code = ble_nus_string_send(&self.m_nus, msg->data, msg->sz);
+        ps_free_message(msg);
     }
     LOGE("BLE_UART watcher exited");
     END_THREAD();
@@ -56,19 +48,12 @@ static uint32_t _init(void){
     ble_nus_init_t nus_init;
     
     memset(&nus_init, 0, sizeof(nus_init));
-
     nus_init.data_handler = _nus_data_handler;
     
     err_code = ble_nus_init(&self.m_nus, &nus_init);
 
-    osThreadDef_t t = (osThreadDef_t){
-        .name = "BLE_UARTd",
-        .pthread = _watcher,
-        .tpriority = 2,
-        .instances = 1,
-        .stacksize = 256,
-    };
-    osThreadCreate(&t, NULL);
+    START_THREAD("ble_uartd", _watcher, 256, NULL);
+
     return err_code;
 }
 

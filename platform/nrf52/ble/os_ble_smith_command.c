@@ -105,7 +105,9 @@ static void _smith_command_service_task(const void * arg){
     ps_channel_t * ch = ps_subscribe(self.listen);
     ps_message_t * msg = NULL;
     ps_message_t * last_msg = NULL;
+    uint32_t ret;
     while( (msg = ps_recv(ch, osWaitForever, NULL)) ){
+        //update the value
         ble_gatts_value_t v = {
             .len = msg->sz,
             .offset = 0,
@@ -118,6 +120,18 @@ static void _smith_command_service_task(const void * arg){
             ps_free_message(last_msg);
         }
         last_msg = msg;
+
+        //lastly notify the connected client of the new value
+        /*
+         *ble_gatts_hvx_params_t notify = (ble_gatts_hvx_params_t){
+         *    .handle = self.smith_read_char_handle.value_handle,
+         *    .type = BLE_GATT_HVX_NOTIFICATION,
+         *    .offset = 0,
+         *    .p_len = &((uint16_t)msg->sz),
+         *    .p_data = msg->data,
+         *};
+         *ret = sd_ble_gatts_hvx(self.conn_handle, &notify);
+         */
     }
     LOGE("Smith daemon unexpectedly exited\r\n");
     END_THREAD();
