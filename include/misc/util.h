@@ -34,6 +34,15 @@
     }\
 }while(0)
 
+#define PRINT_HEX(ptr, sz) do{\
+    int i;\
+    for(i = 0; i < sz; i++){\
+        LOGI("%x ", ((uint8_t*)ptr)[i]);\
+    }\
+    LOGI("\r\n");\
+}while(0)
+
+
 /**
  * ascii stuff
  */
