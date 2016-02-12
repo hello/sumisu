@@ -15,12 +15,53 @@ static struct{
     uint16_t conn_handle;
     ps_topic_t listen, publish;
     ble_gatts_char_handles_t smith_read_char_handle;
+    ble_gatts_char_handles_t smith_write_char_handle;
+    uint8_t client_buf[BLE_GATTS_VAR_ATTR_LEN_MAX];
 }self;
 
-char test_value[] = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static uint32_t _init(void);
 static uint32_t _event(ble_evt_t * p_ble_evt);
 
+//adds tx charactersitic to smith(phone writes to smith)
+static uint32_t _add_smith_write_characteristic(void){
+    ble_uuid_t          ble_uuid;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_gatts_attr_md_t attr_md;
+
+    // The ble_gatts_char_md_t structure uses bit fields. So we reset the memory to zero.
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.write  = 1;
+    char_md.p_char_user_desc = NULL;
+    char_md.p_char_pf        = NULL;
+    char_md.p_user_desc_md   = NULL;
+    char_md.p_cccd_md        = NULL;
+    char_md.p_sccd_md        = NULL;
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.read_perm);
+    attr_md.vloc       = BLE_GATTS_VLOC_USER;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 1;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    BLE_UUID_BLE_ASSIGN(ble_uuid, BLE_UUID_SMITH_COMMAND_WRITE_CHAR);
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = 0;
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = BLE_GATTS_VAR_ATTR_LEN_MAX;
+    attr_char_value.p_value   = NULL;
+
+    return sd_ble_gatts_characteristic_add(self.service_handle, &char_md, &attr_char_value, &self.smith_write_char_handle);
+
+}
 //adds rx characteristic to smith (phone reads from smith)
 static uint32_t _add_smith_read_characteristic(void){
     ble_uuid_t          ble_uuid;
@@ -43,7 +84,7 @@ static uint32_t _add_smith_read_characteristic(void){
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
-    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.vloc       = BLE_GATTS_VLOC_USER;
     attr_md.rd_auth    = 0;
     attr_md.wr_auth    = 0;
     attr_md.vlen       = 1;
@@ -82,7 +123,30 @@ uint32_t _init(void){
     if (err != NRF_SUCCESS){
         return err;
     }
+    err = _add_smith_write_characteristic();
+    if (err != NRF_SUCCESS){
+        return err;
+    }
     return NRF_SUCCESS;
+}
+static void _on_write(const ble_gatts_evt_write_t * evt){
+    if(evt->op == BLE_GATTS_OP_EXEC_WRITE_REQ_NOW ){
+        typedef struct __attribute__((packed)){
+            uint16_t att_handle;
+            uint16_t offset;
+            uint16_t length;
+            uint8_t value[0];
+        }queued_write_block_t;
+        queued_write_block_t * block = (queued_write_block_t*)self.client_buf;
+        /*
+         *LOGD("Long Write handle %u: %d bytes, offset %d\r\n", block->att_handle, evt->len, block->offset);
+         */
+        PRINT_HEX(self.client_buf, 40);
+        PRINT_HEX(evt, sizeof(*evt));
+    }
+    if(evt->handle == self.smith_write_char_handle.value_handle){
+        LOGD("Write OP %u: %d bytes, offset %d\r\n", evt->op, evt->len, evt->offset);
+    }
 }
 uint32_t _event(ble_evt_t * p_ble_evt){
     switch (p_ble_evt->header.evt_id)
@@ -94,6 +158,26 @@ uint32_t _event(ble_evt_t * p_ble_evt){
             self.conn_handle = BLE_CONN_HANDLE_INVALID;
             break;
         case BLE_GATTS_EVT_WRITE:
+            {
+                LOGD("EVT Write\r\n");
+                ble_gatts_evt_write_t write_evt = p_ble_evt->evt.gatts_evt.params.write;
+                _on_write(&write_evt);
+            }
+            break;
+        case BLE_EVT_USER_MEM_REQUEST:
+            {
+                //TODO: WARNING this is not safe if multiple services enable long writes
+                ble_user_mem_block_t block = (ble_user_mem_block_t){
+                    .p_mem = self.client_buf,
+                    .len = sizeof(self.client_buf),
+                };
+                memset(self.client_buf, 0, sizeof(self.client_buf));
+                uint32_t ret = sd_ble_user_mem_reply(self.conn_handle, &block);
+                LOGD("Req %u\r\n", ret);
+            }
+            break;
+        case BLE_EVT_USER_MEM_RELEASE:
+            LOGD("Mem Release\r\n");
             break;
         default:
             // No implementation needed.
