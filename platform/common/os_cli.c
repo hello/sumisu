@@ -8,7 +8,6 @@
 #define CLI_MAX_ARGS 6
 typedef struct{
     ps_topic_t topic;
-    ps_topic_t secondary_output;
     size_t fork_stack_size;
     const cli_command_node_t * tbl;
 }cli_context_t;
