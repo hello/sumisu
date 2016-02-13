@@ -10,6 +10,7 @@
 #define PS_UART0_RX 2
 #define PS_BLE_CONTROL 3
 #define PS_BLE_EVENTS 4
+#define PS_BLE_PROTOBUF 5
 
 static int _command_ble( int argc, char * argv[] ){
     int dummy = 0;
@@ -23,18 +24,20 @@ static cli_command_node_t cli_command_tbl[] = {
 
 static void _ble_watcher(const void * arg){
     ps_channel_t * ch = ps_subscribe(PS_BLE_EVENTS);
-    while(1){
-        ps_message_t * msg = NULL;
-        osStatus rc = osOK;
+    ps_add_topic(ch, PS_BLE_PROTOBUF);
+    ps_message_t * msg = NULL;
+    while( (msg = ps_recv(ch, osWaitForever, NULL)) ){
         uint32_t err_code = 0;
-        msg = ps_recv(ch, osWaitForever, &rc);
-        if ( msg ){
-            uint32_t opcode = 1;
-            LOGD("watcher received message %s\r\n", msg->data);
-            ps_free_message(msg);
-        }else{
-            LOGE("watcher receive error %x\r\n", rc);
+        switch( msg->topic ){
+            case PS_BLE_EVENTS:
+                LOGD("watcher received message %s\r\n", msg->data);
+                break;
+            case PS_BLE_PROTOBUF:
+                LOGD("watcher received protobuf: ");
+                PRINT_HEX(msg->data, msg->sz);
+                break;
         }
+        ps_free_message(msg);
     }
     END_THREAD();
 }
@@ -49,7 +52,7 @@ int main(int argc, char * argv[]){
 
     my_services[0] = os_ble_battery_service(PS_NULL);
     my_services[1] = os_ble_device_info_service();
-    my_services[2] = os_ble_smith_command_service(0,PS_UART0_RX);
+    my_services[2] = os_ble_smith_command_service(PS_BLE_PROTOBUF,PS_UART0_RX);
     my_services[3] = os_ble_uart_service(PS_UART0_TX, PS_UART0_RX);
     os_ble_daemon_start(PS_BLE_CONTROL, PS_BLE_EVENTS,(const os_ble_service_t **)my_services);
 
