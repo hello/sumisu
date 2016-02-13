@@ -144,20 +144,12 @@ static void _cli_daemon(const void * arg){
         if ( msg ){
             int code = 0;
             osStatus ret;
-handle_default:
-            ret = _handle_command(msg->data, msg->sz, default_command_tbl, &code);
-            if( osOK == ret ){
-                LOGI("Command returned %d\r\n", code);
-                goto done;
+            if( osOK == _handle_command(msg->data, msg->sz, default_command_tbl, &code) ||
+                    osOK == _handle_command(msg->data, msg->sz, ctx->tbl, &code) ){
+                LOGI("command returned %d\r\n", code);
+            } else {
+                LOGI("command not found\r\n");;
             }
-handle_user:
-            ret = _handle_command(msg->data, msg->sz, ctx->tbl, &code);
-            if( osOK == ret ){
-                LOGI("Command returned %d\r\n", code);
-            }else{
-                LOGI("Command not found\r\n");;
-            }
-done:
             ps_free_message(msg);
         }
     }
