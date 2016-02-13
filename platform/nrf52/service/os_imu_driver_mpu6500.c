@@ -39,7 +39,6 @@ static osStatus _spi_read(uint8_t address, uint8_t * buf, size_t buf_len){
 void _spi_handler(nrf_drv_spi_event_t event){
     switch (event){
         case NRF_DRV_SPI_EVENT_DONE:
-            osSemaphoreRelease(_spi_sem);
             LOGD("SPI0 Transfer Done\r\n");
             break;
         default:
