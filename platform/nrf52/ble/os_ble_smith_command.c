@@ -16,8 +16,10 @@ static struct{
     ps_topic_t listen, publish;
     ble_gatts_char_handles_t smith_read_char_handle;
     ble_gatts_char_handles_t smith_write_char_handle;
-    uint8_t client_buf[BLE_GATTS_VAR_ATTR_LEN_MAX];
 }self;
+
+static uint8_t write_buf[BLE_GATTS_VAR_ATTR_LEN_MAX];
+static uint16_t write_sz;
 
 static uint32_t _init(void);
 static uint32_t _event(ble_evt_t * p_ble_evt);
@@ -103,49 +105,75 @@ static uint32_t _add_smith_read_characteristic(void){
     return sd_ble_gatts_characteristic_add(self.service_handle, &char_md, &attr_char_value, &self.smith_read_char_handle);
 }
 uint32_t _init(void){
-    uint32_t err;
     uint8_t vtype;
     LOGD("Init Smith Command Service\r\n");
     ble_uuid128_t smith_base = BLE_UUID_SMITH_COMMAND_SERVICE_BASE;
-    err = sd_ble_uuid_vs_add(&smith_base, &vtype);
-    if( err != NRF_SUCCESS ){
-        return err;
-    }
+    APP_ERROR_CHECK(sd_ble_uuid_vs_add(&smith_base, &vtype));
+
     ble_uuid_t ble_uuid = (ble_uuid_t){
         .uuid = BLE_UUID_SMITH_COMMAND_SERVICE,
         .type = vtype,
     };
-    err = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &self.service_handle);
-    if (err != NRF_SUCCESS){
-        return err;
-    }
-    err = _add_smith_read_characteristic();
-    if (err != NRF_SUCCESS){
-        return err;
-    }
-    err = _add_smith_write_characteristic();
-    if (err != NRF_SUCCESS){
-        return err;
-    }
+    APP_ERROR_CHECK(sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &self.service_handle));
+
+    APP_ERROR_CHECK(_add_smith_read_characteristic());
+    APP_ERROR_CHECK(_add_smith_write_characteristic());
+
     return NRF_SUCCESS;
 }
-static void _on_write(const ble_gatts_evt_write_t * evt){
-    if(evt->op == BLE_GATTS_OP_EXEC_WRITE_REQ_NOW ){
-        typedef struct __attribute__((packed)){
-            uint16_t att_handle;
-            uint16_t offset;
-            uint16_t length;
-            uint8_t value[0];
-        }queued_write_block_t;
-        queued_write_block_t * block = (queued_write_block_t*)self.client_buf;
-        /*
-         *LOGD("Long Write handle %u: %d bytes, offset %d\r\n", block->att_handle, evt->len, block->offset);
-         */
-        PRINT_HEX(self.client_buf, 40);
-        PRINT_HEX(evt, sizeof(*evt));
+static uint16_t _copy_buffer(uint8_t * buf, uint16_t * sz, uint16_t max_size, uint16_t in_len, uint16_t in_offset, uint8_t * in_data){
+    if(*sz != in_offset){
+        LOGE("Offset mismatch\r\n");
+        return BLE_GATT_STATUS_ATTERR_INVALID_OFFSET;
+    }else if( *sz + in_len >= max_size ){
+        LOGE("Buffer limit reached\r\n");
+        return BLE_GATT_STATUS_ATTERR_INVALID_OFFSET;
+    }else{
+        memcpy(buf + in_offset, in_data, in_len);
+        *sz += in_len;
+        return BLE_GATT_STATUS_SUCCESS;
     }
+}
+static void _clear_write_buffer(void){
+    memset(write_buf, 0, sizeof(write_buf));
+    write_sz = 0;
+}
+//for long writes
+static void _on_request(const ble_gatts_evt_rw_authorize_request_t * req){
+    if(req->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE){
+        ble_gatts_evt_write_t * wr = &(req->request.write);
+
+        ble_gatts_rw_authorize_reply_params_t auth;
+        memset(&auth, 0, sizeof(auth));
+        auth.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;
+
+        switch(wr->op){
+            case BLE_GATTS_OP_PREP_WRITE_REQ:
+                if( wr->handle == self.smith_write_char_handle.value_handle ){
+                    auth.params.write.gatt_status = _copy_buffer(write_buf, &write_sz, sizeof(write_buf), wr->len, wr->offset, wr->data);
+                    APP_ERROR_CHECK(sd_ble_gatts_rw_authorize_reply(self.conn_handle, &auth));
+                }
+                break;
+            case BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL:
+                _clear_write_buffer();
+                break;
+            case BLE_GATTS_OP_EXEC_WRITE_REQ_NOW:
+                if( write_sz ){
+                    auth.params.write.gatt_status = BLE_GATT_STATUS_SUCCESS;
+                    APP_ERROR_CHECK(sd_ble_gatts_rw_authorize_reply(self.conn_handle, &auth));
+                    ps_publish(self.publish, write_buf, write_sz);
+                }
+                _clear_write_buffer();
+                break;
+            default:
+                break;
+        }
+    }
+}
+//for short writes
+static void _on_write(const ble_gatts_evt_write_t * evt){
     if(evt->handle == self.smith_write_char_handle.value_handle){
-        LOGD("Write OP %u: %d bytes, offset %d\r\n", evt->op, evt->len, evt->offset);
+        ps_publish(self.publish, evt->data, evt->len);
     }
 }
 uint32_t _event(ble_evt_t * p_ble_evt){
@@ -153,27 +181,28 @@ uint32_t _event(ble_evt_t * p_ble_evt){
     {
         case BLE_GAP_EVT_CONNECTED:
             self.conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            _clear_write_buffer();
             break;
         case BLE_GAP_EVT_DISCONNECTED:
             self.conn_handle = BLE_CONN_HANDLE_INVALID;
+            _clear_write_buffer();
             break;
         case BLE_GATTS_EVT_WRITE:
             {
-                LOGD("EVT Write\r\n");
-                ble_gatts_evt_write_t write_evt = p_ble_evt->evt.gatts_evt.params.write;
-                _on_write(&write_evt);
+                ble_gatts_evt_write_t * write_evt = &(p_ble_evt->evt.gatts_evt.params.write);
+                _on_write(write_evt);
+            }
+            break;
+        case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
+            {
+                ble_gatts_evt_rw_authorize_request_t * req = &(p_ble_evt->evt.gatts_evt.params.authorize_request);
+                _on_request(req);
             }
             break;
         case BLE_EVT_USER_MEM_REQUEST:
             {
                 //TODO: WARNING this is not safe if multiple services enable long writes
-                ble_user_mem_block_t block = (ble_user_mem_block_t){
-                    .p_mem = self.client_buf,
-                    .len = sizeof(self.client_buf),
-                };
-                memset(self.client_buf, 0, sizeof(self.client_buf));
-                uint32_t ret = sd_ble_user_mem_reply(self.conn_handle, &block);
-                LOGD("Req %u\r\n", ret);
+                APP_ERROR_CHECK(sd_ble_user_mem_reply(self.conn_handle, NULL));
             }
             break;
         case BLE_EVT_USER_MEM_RELEASE:
@@ -214,7 +243,7 @@ static void _smith_command_service_task(const void * arg){
             .p_len = &len,
             .p_data = msg->data,
         };
-        ret = sd_ble_gatts_hvx(self.conn_handle, &notify);
+        sd_ble_gatts_hvx(self.conn_handle, &notify);
     }
     LOGE("Smith daemon unexpectedly exited\r\n");
     END_THREAD();
