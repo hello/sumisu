@@ -4,6 +4,7 @@
 #include "cmsis_os.h"
 #include "io.h"
 #include "util.h"
+#include "mpu_6500_registers.h"
 
 #define MPU_READ_ADDR(d) (d | 0x80)
 #define MPU_WRITE_ADDR(d) (d & 0x7F)
