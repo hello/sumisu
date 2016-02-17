@@ -2,13 +2,14 @@
 Sumisu is the repo for Smith
 
 ## Setup
-1. git clone git@github.com:hello/sumisu.git sumisu
-2. git submodule update --init --recursive
+1. ```git clone git@github.com:hello/sumisu.git sumisu```
+2. ```git submodule update --init --recursive```
 3. for an initial build, configure the app and platform
-```
-./config.sh ${APP} ${PLATFORM}
-```
-  * example: ```./config test nrf52```
+  ```
+  
+  ./config.sh ${APP} ${PLATFORM}
+  example: ./config test nrf52
+ ```
 4. after that, just run ```./config.sh``` again to build the same setup, or run ```make``` in the **build** folder
 5. all binaries and jlink flash scripts will be generated in the **bin** folder
   * to flash an application:
@@ -18,6 +19,7 @@ Sumisu is the repo for Smith
   * to open up a RTT console:
   ```
   TODO: make this easier to invoke
+  
   ./tools/scripts/jlink_cli.sh, in subsequent cli
   r
   g
