@@ -91,8 +91,20 @@ osStatus os_imu_driver_reset(void){
 }
 
 osStatus os_imu_driver_read(os_imu_data_t * out_data){
-    out_data->x = os_rand() % 64;
-    out_data->y = os_rand() % 64;
-    out_data->z = os_rand() % 64;
+    uint8_t accel[6] = {0};
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_HI, accel+0));
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_LO, accel+1));
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_HI, accel+2));
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_LO, accel+3));
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_HI, accel+4));
+    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_LO, accel+5));
+    out_data->x = (uint32_t)accel[0] << 8 + accel[1];
+    out_data->y = (uint32_t)accel[2] << 8 + accel[3];
+    out_data->z = (uint32_t)accel[4] << 8 + accel[5];
+    /*
+     *out_data->x = os_rand() % 64;
+     *out_data->y = os_rand() % 64;
+     *out_data->z = os_rand() % 64;
+     */
     return osOK;
 }
