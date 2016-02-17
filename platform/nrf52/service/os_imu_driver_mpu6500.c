@@ -64,11 +64,19 @@ osStatus os_imu_driver_reset(void){
     //turn off IMU, if any
     //wait 100 ms
     osDelay(100);
-    //configure initial registers
-    {//read ID
+    //read ID
+    {
         uint8_t buf = 0;
         ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
-        LOGD("SPI ID = %x\r\n", buf);
+        if ( buf != CHIP_ID ){
+            LOGE("Chip ID mismatch, expect %x, got %x.\r\n", CHIP_ID, buf);
+            return osErrorResource;
+        }
+    }
+    //disable I2C, reset signals
+    {
+        uint8_t buf = USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST;
+        ASSERT_OK(_spi_write_byte(MPU_REG_USER_CTL, buf));
     }
     return osOK;
 }
