@@ -52,7 +52,7 @@ osStatus os_imu_driver_init(const os_imu_config_t * config){
         .sck_pin      = SPI0_CONFIG_SCK_PIN,
         .mosi_pin     = SPI0_CONFIG_MOSI_PIN,
         .miso_pin     = SPI0_CONFIG_MISO_PIN,
-        .ss_pin       = NRF_DRV_SPI_PIN_NOT_USED,
+        .ss_pin       = SPI0_CONFIG_CS_PIN,
         .irq_priority = SPI0_CONFIG_IRQ_PRIORITY,
         .orc          = 0xFF,
         .frequency    = NRF_DRV_SPI_FREQ_1M,
