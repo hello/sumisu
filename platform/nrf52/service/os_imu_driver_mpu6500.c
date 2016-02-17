@@ -65,6 +65,11 @@ osStatus os_imu_driver_reset(void){
     //wait 100 ms
     osDelay(100);
     //configure initial registers
+    {//read ID
+        uint8_t buf = 0;
+        ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
+        LOGD("SPI ID = %x\r\n", buf);
+    }
     return osOK;
 }
 
