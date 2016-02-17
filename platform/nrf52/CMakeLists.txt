@@ -17,6 +17,7 @@ file(GLOB platform_src
     "${sdk_location}/components/toolchain/system_nrf52.c"
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
     "${sdk_location}/components/softdevice/common/softdevice_handler/softdevice_handler.c"
+    "${sdk_location}/components/drivers_nrf/gpiote/nrf_drv_gpiote.c"
     )
 
 include_directories(
@@ -31,6 +32,7 @@ include_directories(
     "${sdk_location}/components/drivers_nrf/hal"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
+    "${sdk_location}/components/drivers_nrf/gpiote"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines

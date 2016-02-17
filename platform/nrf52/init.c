@@ -4,6 +4,8 @@
 #include "nrf_delay.h"
 #include "crypto.h"
 #include "pubsub.h"
+#include "nrf_drv_gpiote.h"
+#include "util.h"
 
 osStatus osKernelInitialize (void){
     osStatus ret = osOK;
@@ -23,6 +25,10 @@ osStatus osKernelInitialize (void){
 
     //setup uart
     os_io_init();
+
+    //setup gpiote
+    ASSERT_OK(nrf_drv_gpiote_init());
+
     LOGI("Welcome to sumisu - nrf52\r\n");
 
     return ret;
