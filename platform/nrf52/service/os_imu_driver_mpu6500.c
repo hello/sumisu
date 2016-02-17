@@ -31,6 +31,7 @@ static osStatus _spi_read_byte(uint8_t address, uint8_t * out){
     uint32_t ret;
     ret =  nrf_drv_spi_transfer(&_spi_master, spi_buf, sizeof(spi_buf), spi_buf, sizeof(spi_buf));
     if( ret == NRF_SUCCESS ){
+        *out = spi_buf[1];
         return osOK;
     }else{
         LOGE("SPI Read Error %u\r\n", ret);
