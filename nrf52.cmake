@@ -33,6 +33,7 @@ set(CMAKE_C_FLAGS
     "-mfloat-abi=hard -mfpu=fpv4-sp-d16"
     "--specs=nano.specs -lc -lnosys"
     "-DNRF52"
+    "-DENABLE_TRACE"
     "-DS132 -DSOFTDEVICE_PRESENT"
     "-DBSP_DEFINES_ONLY"
     "-DBLE_STACK_SUPPORT_REQD"
