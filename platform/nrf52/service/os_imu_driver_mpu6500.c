@@ -75,9 +75,18 @@ osStatus os_imu_driver_reset(void){
     }
     //disable I2C, reset signals
     {
-        uint8_t buf = USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST;
-        ASSERT_OK(_spi_write_byte(MPU_REG_USER_CTL, buf));
+        ASSERT_OK(_spi_write_byte(
+                    MPU_REG_USER_CTL,
+                    (USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST)
+                    ));
     }
+    {
+        ASSERT_OK(_spi_write_byte(
+                    PWR_MGMT_1_RESET,
+                    ( PWR_MGMT_1_RESET )
+                    ));
+    }
+    //
     return osOK;
 }
 
