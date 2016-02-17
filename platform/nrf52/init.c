@@ -17,7 +17,7 @@ osStatus osKernelInitialize (void){
     nrf_delay_ms(500);
 
     //initialize pubsub service
-    ret = ps_init();
+    ASSERT_OK(ps_init());
 
     //seed some entropy
     //TODO get entropy from nrf_rand lib
