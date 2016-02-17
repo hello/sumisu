@@ -28,6 +28,8 @@ static cli_command_node_t cli_command_tbl[] = {
 };
 
 int main(int argc, char * argv[]){
+	SEGGER_SYSVIEW_Conf();
+
     osKernelInitialize();
 
     os_io_set_broadcast_topic(PS_UART0_RX);
