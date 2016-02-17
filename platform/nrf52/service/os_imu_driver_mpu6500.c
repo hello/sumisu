@@ -38,6 +38,23 @@ static osStatus _spi_read_byte(uint8_t address, uint8_t * out){
     }
     return osErrorResource;
 }
+static void _imu_reset_signal(void){
+    ASSERT_OK(_spi_write_byte(
+                MPU_REG_USER_CTL,
+                (USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST)
+                ));
+    ASSERT_OK(_spi_write_byte(
+                MPU_REG_SIG_RST,
+                (0xFF)
+                ));
+    ASSERT_OK(_spi_write_byte(
+                PWR_MGMT_1_RESET,
+                ( PWR_MGMT_1_RESET )
+                ));
+}
+static _imu_config_normal_mode(const os_imu_config_t * config){
+
+}
 osStatus os_imu_driver_init(const os_imu_config_t * config){
     //configure driver
     nrf_drv_spi_config_t spi_config =(nrf_drv_spi_config_t){                                                            \
@@ -73,20 +90,8 @@ osStatus os_imu_driver_reset(void){
             return osErrorResource;
         }
     }
-    //disable I2C, reset signals
-    {
-        ASSERT_OK(_spi_write_byte(
-                    MPU_REG_USER_CTL,
-                    (USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST)
-                    ));
-    }
-    {
-        ASSERT_OK(_spi_write_byte(
-                    PWR_MGMT_1_RESET,
-                    ( PWR_MGMT_1_RESET )
-                    ));
-    }
-    //
+    _imu_reset_signal();
+    _imu_config_normal_mode(&_config);
     return osOK;
 }
 
