@@ -26,25 +26,16 @@ static osStatus _spi_write_byte(uint8_t address, uint8_t value){
     }
     return osErrorResource;
 }
-static osStatus _spi_read(uint8_t address, uint8_t * buf, size_t buf_len){
-    uint8_t addr = MPU_READ_ADDR(address);
+static osStatus _spi_read_byte(uint8_t address, uint8_t * out){
+    uint8_t spi_buf[2] = {MPU_READ_ADDR(address), 0};
     uint32_t ret;
-    ret =  nrf_drv_spi_transfer(&_spi_master, &addr, sizeof(addr), buf, buf_len);
+    ret =  nrf_drv_spi_transfer(&_spi_master, spi_buf, sizeof(spi_buf), spi_buf, sizeof(spi_buf));
     if( ret == NRF_SUCCESS ){
         return osOK;
     }else{
         LOGE("SPI Read Error %u\r\n", ret);
     }
     return osErrorResource;
-}
-void _spi_handler(nrf_drv_spi_event_t event){
-    switch (event){
-        case NRF_DRV_SPI_EVENT_DONE:
-            LOGD("SPI0 Transfer Done\r\n");
-            break;
-        default:
-            break;
-    }
 }
 osStatus os_imu_driver_init(const os_imu_config_t * config){
     //configure driver
@@ -59,7 +50,7 @@ osStatus os_imu_driver_init(const os_imu_config_t * config){
         .mode         = NRF_DRV_SPI_MODE_0,
         .bit_order    = NRF_DRV_SPI_BIT_ORDER_MSB_FIRST,
     };
-    if(NRF_SUCCESS != nrf_drv_spi_init(&_spi_master,&spi_config, _spi_handler)){
+    if(NRF_SUCCESS != nrf_drv_spi_init(&_spi_master,&spi_config, NULL)){
         return osErrorResource;
     }
     //copy user supplied config parameter
