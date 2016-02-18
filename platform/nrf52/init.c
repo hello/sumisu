@@ -8,6 +8,9 @@
 osStatus osKernelInitialize (void){
     osStatus ret = osOK;
 
+    //setup rtos trace
+    SEGGER_SYSVIEW_Conf();
+
     //setup clksrc for kernel ticks
     SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_SYNTH_250_PPM, NULL);
 

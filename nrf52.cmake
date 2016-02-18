@@ -11,7 +11,7 @@ set(CMAKE_CROSSCOMPILING TRUE)
 # Location TODO move to parent directory
 ##############################################
 
-set(GCC_PACKAGE gcc-arm-none-eabi-4_7-2013q3)
+set(GCC_PACKAGE gcc-arm-none-eabi-5_2-2015q4)
 set(GCC_ROOT ${PROJECT_SOURCE_DIR}/tools/gcc-arm-none-eabi/${GCC_PACKAGE})
 
 ##############################################
@@ -33,6 +33,7 @@ set(CMAKE_C_FLAGS
     "-mfloat-abi=hard -mfpu=fpv4-sp-d16"
     "--specs=nano.specs -lc -lnosys"
     "-DNRF52"
+    "-DENABLE_TRACE"
     "-DS132 -DSOFTDEVICE_PRESENT"
     "-DBSP_DEFINES_ONLY"
     "-DBLE_STACK_SUPPORT_REQD"
