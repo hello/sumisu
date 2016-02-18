@@ -42,7 +42,7 @@ static osStatus _spi_read_byte(uint8_t address, uint8_t * out){
 static osStatus _spi_set_register(uint8_t address, uint8_t mask){
     uint8_t buf = 0;
     ASSERT_OK(_spi_read_byte(address, &buf));
-    LOGD("Register %d: 0x%x\r\n", address, buf);
+    LOGD("Register %d: 0x%x -> 0x%x\r\n", address, buf, buf | mask);
     return _spi_write_byte(address, buf | mask);
 }
 static uint8_t _get_chip_id(void){
@@ -51,7 +51,7 @@ static uint8_t _get_chip_id(void){
     return buf;
 }
 /*
- * sets the MPU to original state
+ * sets the MPU to clean slate
  */
 static osStatus _imu_reset_signal(void){
     //6500 register map recommended reset sequence, page 42
