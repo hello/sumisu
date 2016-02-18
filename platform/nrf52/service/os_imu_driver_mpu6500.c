@@ -38,6 +38,12 @@ static osStatus _spi_read_byte(uint8_t address, uint8_t * out){
     }
     return osErrorResource;
 }
+static osStatus _spi_set_register(uint8_t address, uint8_t mask){
+    uint8_t buf = 0;
+    ASSERT_OK(_spi_read_byte(address, &buf));
+    LOGD("Register %d: 0x%x\r\n", address, buf);
+    return _spi_write_byte(address, buf | mask);
+}
 static void _imu_reset_signal(void){
     ASSERT_OK(_spi_write_byte(
                 MPU_REG_USER_CTL,
@@ -80,6 +86,7 @@ osStatus os_imu_driver_init(const os_imu_config_t * config){
 osStatus os_imu_driver_reset(void){
     //turn off IMU, if any
     //wait 100 ms
+    _imu_reset_signal();
     osDelay(100);
     //read ID
     {
