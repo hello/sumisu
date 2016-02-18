@@ -187,23 +187,30 @@ osStatus os_imu_driver_reset(void){
 
 #define assemble(ptr, offset) (((uint16_t)ptr[offset] << 8) + ptr[offset+1]) /*always hi->lo*/
 
-static void read_fifo_step(os_imu_data_t * out_data){
-    uint8_t data[7] = {0};
+static void read_fifo_step(os_imu_data_t * out_data, const os_imu_config_t * config){
+    uint8_t data[13] = {0};
+    uint8_t data_size = (config->has_accel ? 6 : 0) + (config->has_gyro ? 6 : 0) + 1;
     data[0] = MPU_REG_FIFO;
-    _spi_read_burst(data, sizeof(data));
-    out_data->x = (int16_t)assemble(data, 1);
-    out_data->y = (int16_t)assemble(data, 3);
-    out_data->z = (int16_t)assemble(data, 5);
+    _spi_read_burst(data, data_size);
+    if( data_size > 1 ){//one is minimum for read register
+        out_data->x = (int16_t)assemble(data, 1);
+        out_data->y = (int16_t)assemble(data, 3);
+        out_data->z = (int16_t)assemble(data, 5);
+    }
+    if( data_size > 7  ){
+        out_data->rx = (int16_t)assemble(data, 7);
+        out_data->ry = (int16_t)assemble(data, 9);
+        out_data->rz = (int16_t)assemble(data, 11);
+    }
 }
 osStatus os_imu_driver_read(os_imu_data_t * out_data){
     out_data->config = &_config;
-    uint16_t count = _fifo_cnt();
-    /*
-     *LOGD("FIFO = %u\r\n", count);
-     */
+    uint16_t count = _fifo_cnt(&_config);
+    LOGD("FIFO = %u : ", count);
     for(int i = 0; i < count; i ++){
         os_imu_data_t d = {0};
-        read_fifo_step(&d);
+        read_fifo_step(&d, &_config);
+        *out_data = d;
         out_data->x += d.x;
         out_data->y += d.y;
         out_data->z += d.z;
@@ -211,12 +218,7 @@ osStatus os_imu_driver_read(os_imu_data_t * out_data){
     out_data->x /= count;
     out_data->y /= count;
     out_data->z /= count;
-    
     _imu_clear_interrupt();
-    /*
-     *out_data->x = os_rand() % 64;
-     *out_data->y = os_rand() % 64;
-     *out_data->z = os_rand() % 64;
-     */
+
     return osOK;
 }
