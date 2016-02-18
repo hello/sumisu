@@ -49,3 +49,9 @@ install_manifest.txt
 
 #ctags
 tags
+
+#ideas
+.idea/
+
+#JLINK
+JLinkTCPIP.log

@@ -17,6 +17,7 @@ file(GLOB platform_src
     "${sdk_location}/components/toolchain/system_nrf52.c"
     "${sdk_location}/components/drivers_nrf/common/nrf_drv_common.c"
     "${sdk_location}/components/softdevice/common/softdevice_handler/softdevice_handler.c"
+    "${sdk_location}/components/drivers_nrf/gpiote/nrf_drv_gpiote.c"
     )
 
 include_directories(
@@ -29,9 +30,9 @@ include_directories(
     "${sdk_location}/components/softdevice/s132/headers/nrf52"
     "${sdk_location}/components/drivers_nrf/common"
     "${sdk_location}/components/drivers_nrf/hal"
-    "${sdk_location}/components/drivers_ext/segger_rtt"
     "${sdk_location}/components/libraries/util"
     "${sdk_location}/components/libraries/scheduler"
+    "${sdk_location}/components/drivers_nrf/gpiote"
     #todo separate below
     "${sdk_location}/components/ble/ble_dtm"
     #board specific defines
@@ -62,7 +63,8 @@ include_directories(
     #uart
     "${sdk_location}/components/drivers_nrf/uart"
     "${sdk_location}/components/libraries/fifo"
-    
+    #spi master
+    "${sdk_location}/components/drivers_nrf/spi_master"
     )
 
 ##############################################
@@ -85,6 +87,7 @@ add_to_platform(io)
 add_to_platform(misc)
 add_to_platform(ble)
 add_to_platform(freertos)
+add_to_platform(service)
 
 ##############################################
 # Build Lib(Must take place after Adding modules)
