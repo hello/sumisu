@@ -13,7 +13,7 @@ static void _imu_watcher(void const * arg){
     ps_message_t * msg;
     while( (msg = ps_recv(ch, osWaitForever, NULL))){
         os_imu_data_t * d = (os_imu_data_t*)msg->data;
-        LOGT("accel=(%u, %u, %u)\r\n", d->x, d->y, d->z);
+        LOGT("accel=(%d, %d, %d)\r\n", d->x, d->y, d->z);
         ps_free_message(msg);
     }
     LOGE("An error has occured :(\r\n");

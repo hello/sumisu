@@ -170,11 +170,12 @@ static void read_fifo_step(os_imu_data_t * out_data){
     uint8_t data[7] = {0};
     data[0] = MPU_REG_FIFO;
     _spi_read_burst(data, sizeof(data));
-    out_data->x = assemble(data, 1);
-    out_data->y = assemble(data, 3);
-    out_data->z = assemble(data, 5);
+    out_data->x = (int16_t)assemble(data, 1);
+    out_data->y = (int16_t)assemble(data, 3);
+    out_data->z = (int16_t)assemble(data, 5);
 }
 osStatus os_imu_driver_read(os_imu_data_t * out_data){
+    out_data->config = &_config;
     uint16_t count = _fifo_cnt();
     /*
      *LOGD("FIFO = %u\r\n", count);

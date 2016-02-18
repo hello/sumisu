@@ -8,9 +8,12 @@ typedef struct{
 
 typedef struct{
     const os_imu_config_t * config;
-    uint32_t x;
-    uint32_t y;
-    uint32_t z;
+    int32_t x;
+    int32_t y;
+    int32_t z;
+    int32_t rx;
+    int32_t ry;
+    int32_t rz;
 }os_imu_data_t;
 
 osStatus os_imu_daemon_start(ps_topic_t broadcast, const os_imu_config_t * config);
