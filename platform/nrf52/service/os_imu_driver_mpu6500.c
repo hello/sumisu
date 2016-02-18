@@ -14,6 +14,16 @@ static nrf_drv_spi_t _spi_context;
 static const nrf_drv_spi_t _spi_master = NRF_DRV_SPI_INSTANCE(0);
 static os_imu_config_t _config;
 
+static osStatus _spi_read_burst(uint8_t * buf, size_t sz){
+    buf[0] = MPU_READ_ADDR(buf[0]);
+    uint32_t ret;
+    ret =  nrf_drv_spi_transfer(&_spi_master, buf, sz, buf, sz);
+    if( ret == NRF_SUCCESS ){
+        return osOK;
+    }else{
+        LOGE("SPI Read Error %u\r\n", ret);
+    }
+}
 static osStatus _spi_write_byte(uint8_t address, uint8_t value){
     uint8_t spi_buf[2] = {0};//maybe it's not needed?
     spi_buf[0] = MPU_WRITE_ADDR(address);
@@ -50,6 +60,13 @@ static uint8_t _get_chip_id(void){
     ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
     return buf;
 }
+static uint16_t _fifo_cnt(void){
+    uint8_t buf[2] = {0};
+    ASSERT_OK(_spi_read_byte(MPU_REG_FIFO_CNT_LO, buf));
+    ASSERT_OK(_spi_read_byte(MPU_REG_FIFO_CNT_HI, buf+1));
+    buf[1] &= 0x0F;
+    return *(uint16_t*)buf;
+}
 /*
  * sets the MPU to clean slate
  */
@@ -77,20 +94,41 @@ static osStatus _imu_reset_signal(void){
 }
 static uint8_t _imu_clear_interrupt(void){
     uint8_t ret = 0;
-    ASSERT_OK(_spi_read_byte(MPU_REG_INT_STS, &ret));
+    _spi_read_byte(MPU_REG_INT_STS, &ret);
     return ret;
+}
+static void _imu_config_interrupt(void){
+    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 0);
+    _spi_write_byte(MPU_REG_INT_CFG, INT_CFG_ACT_LO | INT_CFG_PUSH_PULL | INT_CFG_LATCH_OUT | INT_CFG_CLR_ON_STS | INT_CFG_BYPASS_EN);
+    _spi_write_byte(MPU_REG_INT_EN, INT_EN_RAW_READY);
+    _imu_clear_interrupt();
+    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 1);
+}
+static void _imu_config_fifo(void){
+    /*
+     *
+     *_spi_set_register(MPU_REG_CONFIG, CONFIG_FIFO_MODE_DROP);
+     */
+    _spi_set_register(MPU_REG_USER_CTL, USR_CTL_FIFO_EN);
+    _spi_set_register(MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_ACCEL));
+    /*
+     *_spi_set_register(MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_GYRO_X | FIFO_EN_QUEUE_GYRO_Y | FIFO_EN_QUEUE_GYRO_Z | FIFO_EN_QUEUE_ACCEL));
+     */
+}
+static void _imu_config_accel(){
+    //config low pass
+    _spi_write_byte(MPU_REG_ACC_CFG2, ACCEL_CFG2_LPF_1kHz_460bw | ACCEL_CFG2_FCHOICE_0);
+    _spi_write_byte(MPU_REG_ACC_CFG, ACCEL_CFG_SCALE_8G);
 }
 static osStatus _imu_config_normal_mode(const os_imu_config_t * config){
     //config interrupt
-    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 0);
-    ASSERT_OK(_spi_write_byte(MPU_REG_INT_CFG, INT_CFG_ACT_LO | INT_CFG_PUSH_PULL | INT_CFG_LATCH_OUT | INT_CFG_CLR_ON_STS | INT_CFG_BYPASS_EN));
-    ASSERT_OK(_spi_write_byte(MPU_REG_INT_EN, INT_EN_RAW_READY));
-    _imu_clear_interrupt();
-    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 1);
+    _imu_config_interrupt();
+    _imu_config_fifo();
+    _imu_config_accel();
     return osOK;
 }
 static void _on_imu_int(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
-    LOGD("Imu int\r\n");
+
 }
 osStatus os_imu_driver_init(const os_imu_config_t * config){
     //configure driver
@@ -126,17 +164,32 @@ osStatus os_imu_driver_reset(void){
     return osOK;
 }
 
+#define assemble(ptr, offset) (((uint16_t)ptr[offset] << 8) + ptr[offset+1]) /*always hi->lo*/
+
+static void read_fifo_step(os_imu_data_t * out_data){
+    uint8_t data[7] = {0};
+    data[0] = MPU_REG_FIFO;
+    _spi_read_burst(data, sizeof(data));
+    out_data->x = assemble(data, 1);
+    out_data->y = assemble(data, 3);
+    out_data->z = assemble(data, 5);
+}
 osStatus os_imu_driver_read(os_imu_data_t * out_data){
-    uint8_t accel[6] = {0};
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_HI, accel+0));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_LO, accel+1));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_HI, accel+2));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_LO, accel+3));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_HI, accel+4));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_LO, accel+5));
-    out_data->x = (uint32_t)accel[0] << 8 + accel[1];
-    out_data->y = (uint32_t)accel[2] << 8 + accel[3];
-    out_data->z = (uint32_t)accel[4] << 8 + accel[5];
+    uint16_t count = _fifo_cnt();
+    /*
+     *LOGD("FIFO = %u\r\n", count);
+     */
+    for(int i = 0; i < count; i ++){
+        os_imu_data_t d = {0};
+        read_fifo_step(&d);
+        out_data->x += d.x;
+        out_data->y += d.y;
+        out_data->z += d.z;
+    }
+    out_data->x /= count;
+    out_data->y /= count;
+    out_data->z /= count;
+    
     _imu_clear_interrupt();
     /*
      *out_data->x = os_rand() % 64;
