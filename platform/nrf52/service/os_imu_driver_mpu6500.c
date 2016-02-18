@@ -5,6 +5,7 @@
 #include "io.h"
 #include "util.h"
 #include "mpu_6500_registers.h"
+#include "nrf_drv_gpiote.h"
 
 #define MPU_READ_ADDR(d) (d | 0x80)
 #define MPU_WRITE_ADDR(d) (d & 0x7F)
@@ -74,8 +75,22 @@ static osStatus _imu_reset_signal(void){
     }
     return osOK;
 }
-static _imu_config_normal_mode(const os_imu_config_t * config){
-
+static uint8_t _imu_clear_interrupt(void){
+    uint8_t ret = 0;
+    ASSERT_OK(_spi_read_byte(MPU_REG_INT_STS, &ret));
+    return ret;
+}
+static osStatus _imu_config_normal_mode(const os_imu_config_t * config){
+    //config interrupt
+    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 0);
+    ASSERT_OK(_spi_write_byte(MPU_REG_INT_CFG, INT_CFG_ACT_LO | INT_CFG_PUSH_PULL | INT_CFG_LATCH_OUT | INT_CFG_CLR_ON_STS | INT_CFG_BYPASS_EN));
+    ASSERT_OK(_spi_write_byte(MPU_REG_INT_EN, INT_EN_RAW_READY));
+    _imu_clear_interrupt();
+    nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 1);
+    return osOK;
+}
+static void _on_imu_int(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
+    LOGD("Imu int\r\n");
 }
 osStatus os_imu_driver_init(const os_imu_config_t * config){
     //configure driver
@@ -95,39 +110,36 @@ osStatus os_imu_driver_init(const os_imu_config_t * config){
     }
     //copy user supplied config parameter
     _config = *config;
-
+    nrf_drv_gpiote_in_config_t gpio_config = (nrf_drv_gpiote_in_config_t){
+        .sense = NRF_GPIOTE_POLARITY_HITOLO,      /**< Transition that triggers interrupt. */
+        .pull = NRF_GPIO_PIN_NOPULL,       /**< Pulling mode. */
+        .is_watcher = false, /**< True when the input pin is tracking an output pin. */
+        .hi_accuracy = false,/**< True when high accuracy (IN_EVENT) is used. */
+    };
+    ASSERT_OK(nrf_drv_gpiote_in_init(SPI0_CONFIG_INT_PIN, &gpio_config, _on_imu_int));
     return os_imu_driver_reset();
 }
 
 osStatus os_imu_driver_reset(void){
-    //turn off IMU, if any
-    //wait 100 ms
     ASSERT_OK(_imu_reset_signal());
-    //read ID
-    {
-        uint8_t buf = 0;
-        ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
-        if ( buf != CHIP_ID ){
-            LOGE("Chip ID mismatch, expect %x, got %x.\r\n", CHIP_ID, buf);
-            return osErrorResource;
-        }
-    }
-    _imu_reset_signal();
-    _imu_config_normal_mode(&_config);
+    ASSERT_OK(_imu_config_normal_mode(&_config));
     return osOK;
 }
 
 osStatus os_imu_driver_read(os_imu_data_t * out_data){
     uint8_t accel[6] = {0};
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_HI, accel+0));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_LO, accel+1));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_HI, accel+2));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_LO, accel+3));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_HI, accel+4));
-    ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_LO, accel+5));
-    out_data->x = (uint32_t)accel[0] << 8 + accel[1];
-    out_data->y = (uint32_t)accel[2] << 8 + accel[3];
-    out_data->z = (uint32_t)accel[4] << 8 + accel[5];
+    _imu_clear_interrupt();
+    /*
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_HI, accel+0));
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_X_LO, accel+1));
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_HI, accel+2));
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Y_LO, accel+3));
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_HI, accel+4));
+     *ASSERT_OK(_spi_read_byte(MPU_REG_ACC_Z_LO, accel+5));
+     *out_data->x = (uint32_t)accel[0] << 8 + accel[1];
+     *out_data->y = (uint32_t)accel[2] << 8 + accel[3];
+     *out_data->z = (uint32_t)accel[4] << 8 + accel[5];
+     */
     /*
      *out_data->x = os_rand() % 64;
      *out_data->y = os_rand() % 64;
