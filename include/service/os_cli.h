@@ -13,6 +13,4 @@ typedef struct{
  */
 osStatus os_cli_daemon_start(ps_topic_t topic, size_t stack_size, const cli_command_node_t * head);
 
-
-
 #endif

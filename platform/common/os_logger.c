@@ -3,12 +3,18 @@
 #include "pubsub.h"
 static const char * const g_pcHex = "0123456789ABCDEF";
 static volatile uint32_t viewtag = LOG_LEVEL_ALL;
+static ps_topic_t fork_output;
 
 typedef void (*out_func_t)(const char * str, int len, void * data);
 static void _va_printf( va_list vaArgP, const char * pcString, out_func_t func, void * data );
 //out_funcs
 static void _os_puts(const char * str, int len, void * data);
+static void _ps_puts(const char * str, int len, void * data);
 
+//secret secret api
+void os_log_fork_output(ps_topic_t topic){
+    fork_output = topic;
+}
 void os_log(uint32_t loglevel, const char * format, ...){
     va_list args;
     va_start(args, format);
@@ -16,6 +22,9 @@ void os_log(uint32_t loglevel, const char * format, ...){
     if( loglevel & viewtag ){
         //todo protect print
         _va_printf(args, format, _os_puts, NULL);
+    }
+    if(fork_output && loglevel & LOG_LEVEL_INFO){
+        _va_printf(args, format, _ps_puts, &fork_output);
     }
     va_end(args);
 }
@@ -33,6 +42,10 @@ static void _os_puts(const char * str, int len, void * data){
     for(i = 0; i < len; i ++){
         os_putc(str[i]);
     }
+}
+static void _ps_puts(const char * str, int len, void * data){
+    ps_topic_t * temp = (ps_topic_t *)data;
+    ps_publish(*temp, str, len);
 }
 
 static void _va_printf( va_list vaArgP, const char * pcString, out_func_t func, void * data ) {
