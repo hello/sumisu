@@ -30,6 +30,8 @@ int main(int argc, char * argv[]){
     {
         os_imu_config_t config = (os_imu_config_t){
             .sampling_period = 100,
+            .has_accel = true,
+            .has_gyro = false,
         };
         os_imu_daemon_start(IMU_TOPIC, &config);
         START_THREAD("watcher", _imu_watcher, 256, NULL);

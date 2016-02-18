@@ -60,12 +60,16 @@ static uint8_t _get_chip_id(void){
     ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
     return buf;
 }
-static uint16_t _fifo_cnt(void){
+static uint16_t _fifo_cnt(const os_imu_config_t * config){
     uint8_t buf[2] = {0};
+    uint8_t divider = (config->has_accel ? 6 : 0) + (config->has_gyro ? 6 : 0);
+    if( !divider ){
+        divider = 1;
+    }
     ASSERT_OK(_spi_read_byte(MPU_REG_FIFO_CNT_LO, buf));
     ASSERT_OK(_spi_read_byte(MPU_REG_FIFO_CNT_HI, buf+1));
     buf[1] &= 0x0F;
-    return *(uint16_t*)buf;
+    return (*(uint16_t*)buf) / divider;
 }
 /*
  * sets the MPU to clean slate
@@ -100,35 +104,52 @@ static uint8_t _imu_clear_interrupt(void){
 static void _imu_config_interrupt(void){
     nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 0);
     _spi_write_byte(MPU_REG_INT_CFG, INT_CFG_ACT_LO | INT_CFG_PUSH_PULL | INT_CFG_LATCH_OUT | INT_CFG_CLR_ON_STS | INT_CFG_BYPASS_EN);
-    _spi_write_byte(MPU_REG_INT_EN, INT_EN_RAW_READY);
+    _spi_write_byte(MPU_REG_INT_EN, INT_EN_FIFO_OVRFLO);
     _imu_clear_interrupt();
     nrf_drv_gpiote_in_event_enable(SPI0_CONFIG_INT_PIN, 1);
 }
-static void _imu_config_fifo(void){
-    /*
-     *
-     *_spi_set_register(MPU_REG_CONFIG, CONFIG_FIFO_MODE_DROP);
-     */
+static void _imu_config_fifo(const os_imu_config_t * config){
+    
+    _spi_set_register(MPU_REG_CONFIG, CONFIG_FIFO_MODE_DROP);
     _spi_set_register(MPU_REG_USER_CTL, USR_CTL_FIFO_EN);
-    _spi_set_register(MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_ACCEL));
-    /*
-     *_spi_set_register(MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_GYRO_X | FIFO_EN_QUEUE_GYRO_Y | FIFO_EN_QUEUE_GYRO_Z | FIFO_EN_QUEUE_ACCEL));
-     */
+
+    if( config->has_accel ){
+        _spi_set_register( MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_ACCEL) );
+    }
+    if( config->has_gyro ){
+        _spi_set_register( MPU_REG_FIFO_EN, (FIFO_EN_QUEUE_GYRO_X | FIFO_EN_QUEUE_GYRO_Y | FIFO_EN_QUEUE_GYRO_Z) );
+    }
+
 }
-static void _imu_config_accel(){
+static void _imu_config_accel(const os_imu_config_t * config){
     //config low pass
-    _spi_write_byte(MPU_REG_ACC_CFG2, ACCEL_CFG2_LPF_1kHz_460bw | ACCEL_CFG2_FCHOICE_0);
+    _spi_write_byte(MPU_REG_ACC_CFG2, CONFIG_LPF_1kHz_10bw);
     _spi_write_byte(MPU_REG_ACC_CFG, ACCEL_CFG_SCALE_8G);
+    if(config->sampling_period <= 1000){
+        uint32_t hz = 1000 / config->sampling_period;
+        //try to compute closest hz
+        //formulat is 1kHz / ( 1 + [1-255] )
+        uint16_t divider = (1000 / hz) - 1;
+        if(divider> 255){
+            divider = 255;
+        }
+        LOGD("Divider is %u\r\n", divider);
+        _spi_write_byte(MPU_REG_SAMPLE_RATE_DIVIDER, divider);
+    }
+}
+static void _imu_config_lpf(const os_imu_config_t * config){
+    uint8_t lpf = 1 & CONFIG_DLPF_MASK;
+    _spi_set_register(MPU_REG_CONFIG, lpf);
 }
 static osStatus _imu_config_normal_mode(const os_imu_config_t * config){
     //config interrupt
     _imu_config_interrupt();
-    _imu_config_fifo();
-    _imu_config_accel();
+    _imu_config_fifo(config);
+    _imu_config_lpf(config);
+    _imu_config_accel(config);
     return osOK;
 }
 static void _on_imu_int(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action){
-
 }
 osStatus os_imu_driver_init(const os_imu_config_t * config){
     //configure driver

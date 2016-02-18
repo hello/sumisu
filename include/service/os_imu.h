@@ -1,9 +1,12 @@
 #pragma once
 #include "pubsub.h"
+#include <stdbool.h>
 
 typedef struct{
     //config stuff here
-    uint32_t sampling_period;
+    uint16_t sampling_period;
+    bool has_accel;
+    bool has_gyro;
 }os_imu_config_t;
 
 typedef struct{
