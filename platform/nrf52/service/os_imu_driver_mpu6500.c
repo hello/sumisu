@@ -44,19 +44,35 @@ static osStatus _spi_set_register(uint8_t address, uint8_t mask){
     LOGD("Register %d: 0x%x\r\n", address, buf);
     return _spi_write_byte(address, buf | mask);
 }
-static void _imu_reset_signal(void){
-    ASSERT_OK(_spi_write_byte(
-                MPU_REG_USER_CTL,
-                (USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST)
-                ));
-    ASSERT_OK(_spi_write_byte(
+static uint8_t _get_chip_id(void){
+    uint8_t buf = 0;
+    ASSERT_OK(_spi_read_byte(MPU_REG_WHO_AM_I, &buf));
+    return buf;
+}
+/*
+ * sets the MPU to original state
+ */
+static osStatus _imu_reset_signal(void){
+    //6500 register map recommended reset sequence, page 42
+    ASSERT_OK(_spi_set_register(MPU_REG_PWR_MGMT_1, PWR_MGMT_1_RESET ));
+    osDelay(100);
+    ASSERT_OK(_spi_set_register(
                 MPU_REG_SIG_RST,
                 (0xFF)
                 ));
-    ASSERT_OK(_spi_write_byte(
-                PWR_MGMT_1_RESET,
-                ( PWR_MGMT_1_RESET )
+    osDelay(100);
+    ASSERT_OK(_spi_set_register(
+                MPU_REG_USER_CTL,
+                (USR_CTL_I2C_DIS | USR_CTL_FIFO_RST | USR_CTL_SIG_RST)
                 ));
+    osDelay(100);
+    //note checking ID to make sure the read is correct
+    uint8_t c0 = _get_chip_id();
+    if ( c0 != CHIP_ID ){
+        LOGE("Chip ID mismatch, expect %x, got %x\r\n", CHIP_ID);
+        return osErrorResource;
+    }
+    return osOK;
 }
 static _imu_config_normal_mode(const os_imu_config_t * config){
 
@@ -86,8 +102,7 @@ osStatus os_imu_driver_init(const os_imu_config_t * config){
 osStatus os_imu_driver_reset(void){
     //turn off IMU, if any
     //wait 100 ms
-    _imu_reset_signal();
-    osDelay(100);
+    ASSERT_OK(_imu_reset_signal());
     //read ID
     {
         uint8_t buf = 0;
